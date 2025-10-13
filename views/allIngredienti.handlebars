@@ -1,0 +1,118 @@
+<a href="/menu" class="btn btn-secondary mb-3">Vai alle Ricette</a>
+<h2 class="display-4">Gli Ingredienti</h2>
+<table id="legendTable" class="table table-bordered table-hover"> 
+	<thead> 
+		<th>Name</th><th>Prezzo</th>
+	</thead> 
+	<tbody>
+    {{#each legends}} 
+        <tr> 
+            <td> 
+                {{this/Name}}
+            </td> 
+            <td> 
+                {{this/Price}} 
+            </td>             
+        </tr> 
+    {{/each}} 
+ </tbody>
+</table>
+
+<h3 class="display-5">Aggiungi nuovo:</h3>
+<form id="newLegendForm"> 
+	<div class="form-group"> 
+		<label for="Name">Nome</label> 
+		<input type="text" class="form-control" name="Name" id="Name" required> 
+	</div> 
+	<div class="form-group"> 
+		<label for="Price">Prezzo</label> 
+		<input type="text" class="form-control" name="Price" id="Price"> 
+	</div> 
+	<button id="submitButton" class="btn btn-primary">Aggiungi</button> 
+</form> 
+<script>
+	document.addEventListener("DOMContentLoaded", (event) => { 
+		loadTableListeners(); 
+	});
+	
+	function loadTableListeners() {
+		const rows = document.querySelectorAll("#legendTable tbody tr");
+		rows.forEach(row => {
+			row.addEventListener("click", async () => {
+				const fullName = row.cells[0].textContent.trim();
+				const jlastName ={ 'Name': fullName};
+				try {
+					const fetchConfigData = { 
+						method: "POST", 
+						body: JSON.stringify(jlastName),  
+						headers: { 
+							"Content-Type": "application/json" 
+						} 
+					}; 
+		 
+					const response = await fetch("/DELETEingredient", fetchConfigData); 
+					if(response.ok) { 
+						const ingred = await response.json();
+						loadTableWithIngrid((ingred));
+					} else { 
+						console.log("Error with the response data"); 
+					}
+				} catch (err) { 
+					console.log(`Error: ${err}`); 
+				}
+				
+			});
+		});
+		
+		
+	}
+	document.getElementById("submitButton").addEventListener("click", async (e) => {
+		e.preventDefault(); 
+		
+		try {
+			const Name = document.getElementById("Name").value; 
+			const Price = document.getElementById("Price").value; 
+
+			const ingrData = { 
+				Name: Name, 
+				Price: Price
+			}; 
+			const fetchConfigData = { 
+				method: "POST", 
+				body: JSON.stringify(ingrData),  
+				headers: { 
+					"Content-Type": "application/json" 
+				} 
+			}; 
+			const response = await fetch("/Ningrediente", fetchConfigData); 
+			if(response.ok) { 
+				const ingredi = await response.json();
+				loadTableWithIngrid(ingredi);
+			} else { 
+				console.log("Error with the response data"); 
+			}
+		} catch (err) { 
+			console.log(`Error: ${err}`); 
+		}
+	});
+
+	function loadTableWithIngrid(ingredi) {
+		const table = document.getElementById("legendTable"); 
+		const tableBody = table.children[1]; 
+ 
+		tableBody.innerHTML = ""; 
+ 
+		ingredi.forEach(ingrediente => { 
+			const tr = document.createElement("tr"); 
+			const nameTd = document.createElement("td"); 
+			nameTd.innerHTML = `${ingrediente["Name"]}`; 
+			const PriceTd = document.createElement("td"); 
+			PriceTd.innerHTML = `${ingrediente["Price"]}`; 
+			tr.appendChild(nameTd); 
+			tr.appendChild(PriceTd); 
+			tableBody.appendChild(tr); 
+		}); 
+		loadTableListeners();
+		document.getElementById("newLegendForm").reset();
+	}
+</script>

@@ -1,0 +1,56 @@
+             |
+Views:	     |	lezioni 3.4
+_____________|
+con express puoi restituire intere pagine html con funzione views, come teplate in  cui cambia il contenuto.
+il Route Handler sceglie la Views e il contenuto da inserire.
+Ci sono diversi view engine in Express, qui proviamo HANDLEBARS.
+usa file Layout, cioe' views con spazi liberi per altre views, cosi da avere un template piu generico.
+
+installo handlebar
+	npm install --save express-handlebars
+creo l'oggetto handlebar (nel create metto il layout base [sta nella cartella layout dentro views ed e .handlebasr)
+	const handlebars = require('express-handlebars').create({defaultLayout: 'main'});
+setto handlebar come view engine:
+	app.engine('handlebars', handlebars.engine); 
+	app.set('view engine', 'handlebars');
+poi la uso in un get:
+	app.get('/testView', (req, res) => { 
+		const legend = { 
+			FirstName: 'Alan', 
+			LastName: 'Turing', 
+			BirthDate: '1912-06-23' 
+		}; 
+		res.render('testLegendView', legend); }); // primo par=file di layout, secondo param oggetto da inserire)
+la funzione render applica la view (file sara .handlebars in cartella views)
+la view potra inserire i valori dell'oggetto allegato nella view (oggetto opzionale)
+nel  .HANDLEBARS:
+	{{FirstName}} {{LastName}} // riferimento agli oggetti inviati con {{}}
+SE L'OGGETTO INVIATO HA UN ARRAY di oggetti, CON HANDLEBAR POSSO reiterarci dentro:
+	{{#each nomeOggettoArray}} 
+		{{this/nomeVar1}} {{this/nomeVar2}} <br/> 
+	{{/each}}
+
+
+nel file LAYOUT metto tutta struttura base del sito (head, intestazioni, footer..)
+poi metto 
+	{{{body}}}
+dove andra la views specifica di ogni pagina (tre { per non escapare html, poi vedi, di solito solo due {)
+
+alla fine del get/post, posso fare:
+	res.redirect("/"); 
+per mandare alla home in caso di successo
+
+per inserire un form:
+	app.get('/legends/new', async (req, res) => {
+		res.render('newLegendForm');});
+assegno all'indirizzo voluto l'handlebar del form. allinterno di esso avro tante righe cos':
+	<div class="form-group"> 
+        	<label for="firstName">First Name</label> // etichetta
+        	<input type="text" class="form-control" name="firstName" id="firstName"> //form vero e proprio il contenuto sara mandato nel body con il "nome" come key
+    	</div>
+l'intero form e nel tag FORM:
+	<form action="/legends" method="post"> //indirizzo e metodo di invio dati (sempre post)
+e al suo interno avro anche il bottone di invio:
+	<button type="submit" class="btn btn-primary">Submit</button> //invia i dati con un post su /legends
+quando il bottone e' premuto verra' fatto un POST sull'indirizzo <form action="/legends" con nel body i dati compilati
+
