@@ -3,7 +3,6 @@
 const express = require('express'); 
 const morgan = require('morgan'); 
 const bodyParser = require("body-parser");
-const DBAbstraction = require('./DBAbstraction'); 
 const DBmenu = require('./DBmenu'); 
 const db = new DBmenu();
 
@@ -22,11 +21,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); 
 
 
-app.get('/menu', async (req, res) => { 
+app.get('/ricette', async (req, res) => { 
     try {
     const allRic = await db.getAllRicette();
 console.log(allRic);
     res.render('allRicette', {legends: allRic});
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get('/menu', async (req, res) => { 
+    try {
+	const menu = {Titolo:'prova', Stagione:'estate'};
+console.log(menu);
+    res.render('menu', {menu: menu});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -103,7 +112,7 @@ app.post('/Nricetta', async (req, res) => {
 
 app.post('/NomeIngr', async (req, res) => { 
 	const id = req.body.Id; 
-console.log('INDEX cerco ID:', id);
+// console.log('INDEX cerco ID:', id);
 	const ingred = await db.getIngredienteID(id);
 	res.json(ingred);
 });

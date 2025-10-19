@@ -9,7 +9,7 @@ const Ingrediente = mongoose.model('Ingrediente', ingredientiSchema);
 const ricettaSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
 	Ingredienti: [{ type: mongoose.Types.ObjectId, ref: 'Ingrediente' }],
-	Temperatura: { type: Boolean, required: true},
+	Temperatura: { type: Number, required: true},
 	Orario: { type: Boolean, required: true}
 });
 const Ricetta = mongoose.model('Ricetta', ricettaSchema);
@@ -81,13 +81,15 @@ class DBmenu {
 	
 	async removeSingleRecepit(name) {
 		let updatedItem =null;
-		//console.log("Rimuovo: "+name);
+		console.log("Rimuovo: "+name);
 		try {
 			let item = await Ricetta.findOneAndDelete({ 'Name':name });
 			if (item == null) {
+/////				await Ricetta.deleteMany({}); // per droppare tutte ricette!!!!
 				return null;
 			}
 		} catch (err) {
+			console.error(err);
 			throw err;
 		}
 		return;
@@ -255,7 +257,7 @@ console.log("Almeno ci provo???");
 	
 	async getIngredienteID(_id) {
         let ingrediente = null;
-console.log('DB cerco ID:', _id);
+		//console.log('DB cerco ID:', _id);
         try {
             ingrediente = await Ingrediente.findById(_id).lean();
         //    console.log('ingrediente trovata per ID:', ingrediente);
