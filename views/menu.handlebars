@@ -1,111 +1,91 @@
 <a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
-
+<button id="DROPButton" class="btn btn-primary">ELIMINA TUTTI I MENU</BUTTON>
 <h2 class="display-4">I Menu</h2>
-<table id="menuTable" class="table table-bordered table-hover"> <thead>
+<table id="menuTable" class="table table-bordered table-hover">
+	<thead>
 		<th>Titolo</th><th>Stagione</th>
 	</thead>
-	<tbody>
-	 	 {{#each menus}} 	 	 	 	 <tr data-id="{{this/id}}" style="cursor: pointer;"> 
-	 	 	 	 	 	 <td>
-	 	 	 	 	 	 	 	 {{this/Titolo}} 	 	 	 	 	 	 </td>
-	 	 	 	 	 	 <td>
-	 	 	 	 	 	 	 	 {{this/Stagione}} 	 	 	 	 	 	 </td>
-	 	 	 	 </tr>
-		{{/each}}
-	</tbody>
-</table>
+		<tbody>
+			{{#each menu}}
+			<tr>
+			<!--	<tr data-id="{{this/id}}" style="cursor: pointer;"> -->
+				<td>
+						{{this/Name}} 	 	 	 	 	 	 </td>
+				<td>
+						{{this/Temperatura}} 	 	 	 	 	 	 </td>
+		</tr>
+			{{/each}}
+		</tbody>
+	</table>
 
-<h3 class="display-5">Crea nuovo menu:</h3>
-<form id="newMenuForm"> <div class="form-group">
-		<label for="Titolo">Titolo (lascia vuoto per generare un nome)</label>
-		<input type="text" class="form-control" name="Titolo" id="Titolo">
-	</div>
-	<div class="form-group">
-		<label>Stagione</label>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" name="stagione" value="Primavera" id="checkPrimavera">
-			<label class="form-check-label" for="checkPrimavera">Primavera</label>
+	<h3 class="display-5">Crea nuovo menu:</h3>
+	<form id="newMenuForm">
+		<div class="form-group">
+			<label for="Titolo">Titolo (lascia vuoto per generare un nome)</label>
+			<input type="text" class="form-control" name="Titolo" id="Titolo">
 		</div>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" name="stagione" value="Estate" id="checkEstate">
-			<label class="form-check-label" for="checkEstate">Estate</label>
+		<div class="row mb-3">
+			<div class="col-2">
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
+					<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+				</div>
+			</div>
+			<div class="col-2">
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
+					<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
+				</div>
+			</div>
 		</div>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" name="stagione" value="Autunno" id="checkAutunno">
-			<label class="form-check-label" for="checkAutunno">Autunno</label>
-		</div>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" name="stagione" value="Inverno" id="checkInverno">
-			<label class="form-check-label" for="checkInverno">Inverno</label>
-		</div>
-	</div>
-	<button id="submitButton" class="btn btn-primary">Crea Menu</button>
-</form>
+		<button id="submitButton" class="btn btn-primary">Crea Menu</button>
+	</form>
 
-<script>
-	document.addEventListener("DOMContentLoaded", (event) => {
-		// Carica i listener per le righe della tabella esistenti
-		loadTableListeners();
-	});
-
-	function loadTableListeners() {
-		const rows = document.querySelectorAll("#menuTable tbody tr"); // Selettore tabella modificato
-		rows.forEach(row => {
-			row.addEventListener("click", () => {
-				// Requisito: cliccando la riga si va alla pagina specifica del menu
-				const menuId = row.dataset.id; // Legge l'ID dal 'data-id'
-				if (menuId) {
-					window.location.href = `/menu/${menuId}`; // Naviga alla pagina di quel menu
-				} else {
-					console.error("ID menu non trovato sulla riga.");
-				}
-			});
+	<script>
+		document.addEventListener("DOMContentLoaded", (event) => {
+            caricaTavola();
+			loadTableListeners();
 		});
-	}
 
-	document.getElementById("submitButton").addEventListener("click", async (e) => {
+		function loadTableListeners() {
+			const rows = document.querySelectorAll("#menuTable tbody tr"); // Selettore tabella modificato
+			rows.forEach(row => {
+				row.addEventListener("click", () => {
+					// Requisito: cliccando la riga si va alla pagina specifica del menu
+					const menuId = row.dataset.id; // Legge l'ID dal 'data-id'
+
+					if (menuId) {
+						//window.location.href = `/menu/${menuId}`; // Naviga alla pagina di quel menu
+						console.log("apro menu: " + menuId);
+                        window.location.href = `/piano/${menuId}`;
+					} else {
+						console.error("ID menu non trovato sulla riga.");
+					}
+				});
+			});
+		}
+
+	// DROPButton
+	document.getElementById("DROPButton").addEventListener("click", async (e) => {
 		e.preventDefault();
 
 		try {
-			let titolo = document.getElementById("Titolo").value.trim();
-
-			// Requisito: se il nome non c'è, ne inventa uno random
-			if (titolo === "") {
-				const adjectives = ["Delizioso", "Saporito", "Speciale", "dello Chef", "Rapido"];
-				const nouns = ["Pranzo", "Piatto", "Menu", "Banchetto", "Gusto"];
-				const randAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-				const randNoun = nouns[Math.floor(Math.random() * nouns.length)];
-				titolo = `${randNoun} ${randAdj}`;
-			}
-
-			// Legge le stagioni selezionate dai checkbox
-			const checkboxes = document.querySelectorAll('input[name="stagione"]:checked');
-			const stagioni = Array.from(checkboxes).map(cb => cb.value);
-			
-			// Combina le stagioni in una stringa (es. "Primavera, Estate")
-			// Modifica questo se il tuo backend si aspetta un array o altro
-			const stagioneString = stagioni.join(', '); 
-
-			const menuData = {
-				Titolo: titolo,
-				Stagione: stagioneString // Invia le stagioni selezionate
+		const recipeData = {
+				Name: "ciao",
 			};
-
 			const fetchConfigData = {
 				method: "POST",
-				body: JSON.stringify(menuData),
-				headers: {
-					"Content-Type": "application/json"
-				}
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
 			};
-			
-			// Endpoint modificato per creare un NUOVO MENU
-			const response = await fetch("/Nmenu", fetchConfigData); 
+			console.log("config data: " + fetchConfigData.body);
 
-			if(response.ok) {
-				const menus = await response.json(); // Si aspetta la lista aggiornata dei menu
-				loadTableWithMenus(menus); // Ricarica la tabella con i nuovi dati
+			// Endpoint per eliminare tutti i menu
+			const response = await fetch("/DELETETUTTOmen", fetchConfigData);
+			if (response.ok) {
+				const menus = await response.json();
+				loadTableWithMenus(menus);
 			} else {
 				console.log("Error with the response data");
 			}
@@ -114,30 +94,108 @@
 		}
 	});
 
-	// Funzione modificata per caricare i menu (invece degli ingredienti)
-	function loadTableWithMenus(menus) {
-		const table = document.getElementById("menuTable"); // ID tabella modificato
-		const tableBody = table.children[1];
+        async function caricaTavola() {
+            try {
+                const recipeData = {
+                    Name: 'pino',
+                };
+                const fetchConfigData = {
+                    method: "POST",
+                    body: JSON.stringify(recipeData),
+                    headers: { "Content-Type": "application/json" }
+                };
+                const response = await fetch("/men", fetchConfigData);
+                if (response.ok) {
+                    const mens = await response.json();
+                    loadTableWithMenus((mens));
+                } else {
+                    console.log("Error with the response data");
+                }
+            } catch (err) {
+                console.log(`Error: ${err}`);
+            }
+        }
 
-		tableBody.innerHTML = ""; // Pulisce la tabella
+		document.getElementById("submitButton").addEventListener("click", async (e) => {
+			e.preventDefault();
 
-		menus.forEach(menu => {
-			const tr = document.createElement("tr");
-			// Assicurati che l'oggetto 'menu' restituito dal server abbia 'id', 'Titolo', e 'Stagione'
-			tr.dataset.id = menu.id; // Aggiunge il data-id per il click
-			tr.style.cursor = "pointer";
+			try {
+				let titolo = document.getElementById("Titolo").value.trim();
 
-			const titoloTd = document.createElement("td");
-			titoloTd.innerHTML = `${menu["Titolo"]}`; // Campo modificato
-			const stagioneTd = document.createElement("td");
-			stagioneTd.innerHTML = `${menu["Stagione"]}`; // Campo modificato
+				// Requisito: se il nome non c'è, ne inventa uno random
+				if (titolo === "") {
+					const adjectives = ["Delizioso", "Saporito", "Speciale", "dello Chef", "Rapido"];
+					const nouns = ["Pranzo", "Piatto", "Menu", "Banchetto", "Gusto"];
+					const randAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+					const randNoun = nouns[Math.floor(Math.random() * nouns.length)];
+					titolo = `${randNoun} ${randAdj}`;
+				}
 
-			tr.appendChild(titoloTd);
-			tr.appendChild(stagioneTd);
-			tableBody.appendChild(tr);
+                const Temperatura1 = document.getElementById("Temperatura1").checked;
+                const Temperatura2 = document.getElementById("Temperatura2").checked;
+                const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
+                console.log("titolo: "+titolo+" t1= " + Temperatura1 + " T2: " + Temperatura2 + " Tot: " + Temperatura);
+
+				const menuData = {
+					Name: titolo,
+                    Temperatura: Temperatura 
+				};
+
+				const fetchConfigData = {
+					method: "POST",
+					body: JSON.stringify(menuData),
+					headers: {
+						"Content-Type": "application/json"
+					}
+				};
+
+				// Endpoint modificato per creare un NUOVO MENU
+				const response = await fetch("/Nmenu", fetchConfigData);
+
+				if(response.ok) {
+					const menus = await response.json(); // Si aspetta la lista aggiornata dei menu
+					loadTableWithMenus(menus); // Ricarica la tabella con i nuovi dati
+				} else {
+					console.log("Error with the response data");
+				}
+			} catch (err) {
+				console.log(`Error: ${err}`);
+			}
 		});
-		
-		loadTableListeners(); // Riapplica i listener alle nuove righe create
-		document.getElementById("newMenuForm").reset(); // Resetta il form corretto
-	}
-</script>
+
+		// Funzione modificata per caricare i menu (invece degli ingredienti)
+		function loadTableWithMenus(menus) {
+			const table = document.getElementById("menuTable"); // ID tabella modificato
+			const tableBody = table.children[1];
+
+			tableBody.innerHTML = ""; // Pulisce la tabella
+
+            for (const menu of menus) {
+				const tr = document.createElement("tr");
+				// Assicurati che l'oggetto 'menu' restituito dal server abbia 'id', 'Titolo', e 'Stagione'
+				tr.dataset.id = menu._id; // Aggiunge il data-id per il click
+				tr.style.cursor = "pointer";
+
+				const titoloTd = document.createElement("td");
+				titoloTd.innerHTML = menu.Name; 
+                const temperaturaTd = document.createElement("td");
+                switch (menu.Temperatura) {
+                    case 1:
+                        temperaturaTd.textContent = 'Estate';
+                        break;
+                    case 2:
+                        temperaturaTd.textContent = 'Inverno';
+                        break;
+                    default:
+                        temperaturaTd.textContent = 'OgniStagione';
+                }
+
+				tr.appendChild(titoloTd);
+                tr.appendChild(temperaturaTd);
+				tableBody.appendChild(tr);
+			}
+
+			loadTableListeners(); // Riapplica i listener alle nuove righe create
+			document.getElementById("newMenuForm").reset(); // Resetta il form corretto
+		}
+	</script>

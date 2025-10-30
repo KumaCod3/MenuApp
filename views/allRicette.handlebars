@@ -1,28 +1,29 @@
 <a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Gestisci Ingredienti</a>
+<button id="DROPButton" class="btn btn-primary">ELIMINA TUTTE LE RICETTE</BUTTON>
 <h2 class="display-4">Le Ricette</h2>
 <table id="legendTable" class="table table-bordered table-hover"> 
     <thead> 
         <th>Nome</th><th>Ingredienti</th><th>Stagione</th><th>Pasto</th>
     </thead> 
-	<tbody>
-	{{#each legends}} 
-        <tr> 
-            <td> 
-                {{this/Name}}
-            </td> 
-            <td> 
-                {{this/Ingredienti}} 
-            </td>  
-			<td> 
-                {{this/Temperatura}}
-            </td>
-			<td> 
-                {{this/Orario}}
-            </td>			
-        </tr> 
-    {{/each}} 
-	</tbody>
+	    <tbody>
+	    {{#each legends}} 
+            <tr> 
+                <td> 
+                    {{this/Name}}
+                </td> 
+                <td> 
+                    {{this/Ingredienti}} 
+                </td>  
+			    <td> 
+                    {{this/Temperatura}}
+                </td>
+			    <td> 
+                    {{this/Orario}}
+                </td>			
+            </tr> 
+        {{/each}} 
+	    </tbody>
 </table>
 
 <h3 class="display-5">Aggiungi nuova ricetta:</h3>
@@ -39,20 +40,39 @@
     </div>
     <button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
     <input type="hidden" name="Ingredienti" id="Ingredienti">
-</div>
+	</div>
 
-    <div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
-		<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+
+<div class="row mb-3">
+        <div class="col-2">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
+                <label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
+                <label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
+            </div>
+        </div>
     </div>
-	<div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
-		<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
+
+    <div class="row mb-3">
+        <div class="col-2">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
+                <label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
+                <label class="form-check-label" for="Orario2">Ricetta di Cena</label>
+            </div>
+        </div>
     </div>
-    <div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" name="Orario" id="Orario" required>
-        <label class="form-check-label" for="Orario">Ricetta di Pranzo</label>
-    </div>
+
     <button id="submitButton" class="btn btn-primary">Aggiungi</button>
 </form>
 <script>
@@ -94,7 +114,7 @@ function addIngrediente() {
     const container = document.getElementById("ingredienti-container");
     const newIngredientInput = document.createElement("div");
     newIngredientInput.classList.add("ingredient-input");
-    
+   
     newIngredientInput.innerHTML = // "";
 	`
 		<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
@@ -147,6 +167,33 @@ function updateHiddenInput() {
             });
         });
     }
+// DROPButton
+document.getElementById("DROPButton").addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    try {
+	    const recipeData = {
+            Name: "ciao",
+        };
+		const fetchConfigData = {
+            method: "POST",
+            body: JSON.stringify(recipeData),
+            headers: { "Content-Type": "application/json" }
+        };
+        console.log("config data: " + fetchConfigData.body);
+        
+        // Endpoint per eliminare tutte le ricette
+        const response = await fetch("/DELETETUTTOric", fetchConfigData);
+        if (response.ok) {
+            const recipes = await response.json();
+            loadTableWithRecipes(recipes);
+        } else {
+            console.log("Error with the response data");
+        }
+    } catch (err) {
+        console.log(`Error: ${err}`);
+    }
+});
 
     // Listener per l'invio del form della nuova ricetta
 document.getElementById("submitButton").addEventListener("click", async (e) => {
@@ -168,7 +215,9 @@ document.getElementById("submitButton").addEventListener("click", async (e) => {
         console.log(Array.from(hiddenInputs));
         const Temperatura1 = document.getElementById("Temperatura1").checked;
 		const Temperatura2 = document.getElementById("Temperatura2").checked;
-        const Orario = document.getElementById("Orario").checked; 
+		const Orario1 = document.getElementById("Orario1").checked;
+		const Orario2 = document.getElementById("Orario2").checked;
+        const Orario = (Orario1?1:0)+(Orario2?2:0);
 		const Temperatura = (Temperatura1?1:0)+(Temperatura2?2:0);
 		console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
         const recipeData = {
@@ -249,9 +298,17 @@ document.getElementById("submitButton").addEventListener("click", async (e) => {
 				default:
 					temperaturaTd.textContent = 'OgniStagione';
 			}
-			
 			const orarioTd = document.createElement("td");
-			orarioTd.textContent = ricetta.Orario ? 'Pranzo' : 'Cena';
+			switch (ricetta.Orario) {
+				case 1:
+					orarioTd.textContent = 'Pranzo';
+					break;
+				case 2:
+					orarioTd.textContent = 'Cena';
+					break;
+				default:
+					orarioTd.textContent = 'OgniOra';
+            }
 
 			tr.appendChild(nameTd);
 			tr.appendChild(ingredienteTd);

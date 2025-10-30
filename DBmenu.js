@@ -10,9 +10,15 @@ const ricettaSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
 	Ingredienti: [{ type: mongoose.Types.ObjectId, ref: 'Ingrediente' }],
 	Temperatura: { type: Number, required: true},
-	Orario: { type: Boolean, required: true}
+	Orario: { type: Number, required: true}
 });
 const Ricetta = mongoose.model('Ricetta', ricettaSchema);
+
+const menuSchema = new mongoose.Schema({
+	Name: { type: String, required: true },
+	Temperatura: { type: Number, required: true}
+});
+const Menu = mongoose.model('Menu', menuSchema);
 
 class DBmenu {
     constructor() {
@@ -31,6 +37,16 @@ class DBmenu {
         }
     }
 	
+	async getAllMenu() {
+		let menus = [];
+        try {
+            menus = await Menu.find().lean();
+        } catch (err) {
+            console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
+            throw err;
+        }
+		return menus;
+    }
 	async getAllRicette() {
 		let ricette = [];
         try {
@@ -94,6 +110,25 @@ class DBmenu {
 		}
 		return;
 	}
+
+	async RimuoviTuttoRic(){
+		try {
+			await Ricetta.deleteMany({}); // per droppare tutte ricette!!!!
+			return null;
+		} catch (err) {
+			console.error(err);
+			throw err;
+		}
+	}
+	async RimuoviTuttoMen(){
+		try {
+			await Menu.deleteMany({}); // per droppare tutte ricette!!!!
+			return null;
+		} catch (err) {
+			console.error(err);
+			throw err;
+		}
+	}
 	
 	async getAllIngredientiJN() {
 		let ingredienti = [];
@@ -135,7 +170,7 @@ class DBmenu {
 //console.log("Nomeee: "+nomeIng);
 				try {
 					let newIngrediente = new Ingrediente({
-						Name: ingredienti,//QQQQQQQQQQQQQQ
+						Name: ingredienti,
 						Price: 0
 					});
 //console.log(newIngrediente);
@@ -166,6 +201,24 @@ class DBmenu {
 		}
 	}
 
+	async insertMenu(nome, temperatura) {
+		let newMenu = null;
+        try {
+            newMenu = new Menu({
+                Name: nome,
+				Temperatura: temperatura
+            });
+console.log(newMenu);
+            await newMenu.save();
+            console.log('Menu inserito con successo2:');
+
+        } catch (err) {
+            console.error('C\'è stato un problema con l\'inserimento del menu :', err);
+            throw err;
+        }
+		return newMenu;
+    }
+	
 	async insertIngrediente(nome, prezzo) {
 		let newIngrediente = null;
 console.log("IIIIgred: "+prezzo);
@@ -267,7 +320,18 @@ console.log("Almeno ci provo???");
         }
         return ingrediente;
     }
-	
+
+    async getMenuID(_id) {
+        let menu = null;
+        try {
+            menu = await Menu.findById(_id);
+            console.log('Menu trovata per ID:', menu);
+        } catch (err) {
+            console.error('C\'è stato un problema nel trovare il menu:', err);
+            throw err;
+        }
+        return menu;
+    }
 
     async close() {
         try {

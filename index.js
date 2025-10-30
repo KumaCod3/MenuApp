@@ -31,14 +31,28 @@ console.log(allRic);
   }
 });
 
+
 app.get('/menu', async (req, res) => { 
-    try {
-	const menu = {Titolo:'prova', Stagione:'estate'};
+	try {
+	const menu = await db.getAllMenu();
 console.log(menu);
     res.render('menu', {menu: menu});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+app.get('/piano/:id', async (req, res) => {
+	try {
+		const _id = req.params.id;
+		console.log("questo e lid "+_id);
+
+		const menu = await db.getMenuID(_id);
+		console.log(menu);
+		res.render('piano', { menu: menu });
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
 });
 
 app.get('/ingredienti', async (req, res) => { 
@@ -95,6 +109,35 @@ app.post('/ricet', async (req, res) => {
 	res.json(allRic);
 });
 
+app.post('/men', async (req, res) => {
+	const allMen = await db.getAllMenu();
+	res.json(allMen);
+});
+
+app.post('/pian', async (req, res) => {
+	try {
+		const _id = req.body._id;
+		const menu = await db.getMenuID(_id);
+		res.json(menu);
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
+
+app.post('/Nmenu', async (req, res) => {
+	try {
+		const nome = req.body.Name || 'noName';  
+		const temperatura = req.body.Temperatura; 
+		//console.log("nuovaricetta: "+nome+ingredienti+temperatura+orario);
+		await db.insertMenu(nome, temperatura); 
+		const allMen = await db.getAllMenu();
+		res.json(allMen); 
+	} catch (err) {
+		console.error(err)
+		res.status(500).json({"results": "none"});
+	}
+}); 
+
 app.post('/Nricetta', async (req, res) => {
 	try {
 		const nome = req.body.Name || 'noName'; 
@@ -108,7 +151,7 @@ app.post('/Nricetta', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-}); 
+});
 
 app.post('/NomeIngr', async (req, res) => { 
 	const id = req.body.Id; 
@@ -118,8 +161,24 @@ app.post('/NomeIngr', async (req, res) => {
 });
 
 
-
-
+app.post('/DELETETUTTOric', async (req, res) => { 
+	try {
+		await db.RimuoviTuttoRic();
+		const allRic = await db.getAllRicette();
+			res.json(allRic); 
+	} catch (err) {
+		res.status(500).json({"results": "none"});
+	}
+});
+app.post('/DELETETUTTOmen', async (req, res) => { 
+	try {
+		await db.RimuoviTuttoMen();
+		const allMen = await db.getAllMenu();
+			res.json(allMen); 
+	} catch (err) {
+		res.status(500).json({"results": "none"});
+	}
+});
 
 
 
