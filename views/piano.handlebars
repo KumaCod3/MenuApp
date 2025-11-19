@@ -1,105 +1,104 @@
 <a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
 <a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
-<h2 class="display-4">Ecco il tuo menu:</h2>
-<table id="menuTable" class="table table-bordered table-hover">
-	<thead>
-		<th>Titolo</th><th>Stagione</th>
-	</thead>
-		<tbody>
-			<tr>
-			<!--	<tr data-id="{{menu/id}}" style="cursor: pointer;"> -->
-				<td>
-						{{menu/Name}} 	 	 	 	 	 	 </td>
-				<td>
-						{{menu/Temperatura}} 	 	 	 	 	 	 </td>
-		</tr>
-		</tbody>
-	</table>
+<h2 class="display-4">Ecco il tuo menu</h2>
+<p>
+	<h3 id="intestazione">Name per l'Temperatura</h3>
+</p>
 
-	<script>
-		document.addEventListener("DOMContentLoaded", (event) => {
-            const url = window.location.pathname;
-            const segments = url.split('/');
-            const id = segments.pop();
-            caricaTavola(id);
-			loadTableListeners();
+<div id="contenitoreMenu">
+</div>
+
+
+<script>
+	document.addEventListener("DOMContentLoaded", (event) => {
+		const url = window.location.pathname;
+		const segments = url.split('/');
+		const id = segments.pop();
+		caricaTavola(id);
+	});
+
+
+	async function caricaTavola(id) {
+		try {
+
+			const recipeData = {
+				_id: id,
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/pian", fetchConfigData);
+			if (response.ok) {
+				const mens = await response.json();
+				var div = document.getElementById("intestazione");
+				div.innerHTML = div.innerHTML.replace("Name", mens.Name);
+				var temper = "";
+				switch (mens.Temperatura) {
+					case 1:
+						temper = 'Estate';
+						break;
+					case 2:
+						temper = 'Inverno';
+						break;
+					default:
+						temper = 'OgniStagione';
+				}
+
+				div.innerHTML = div.innerHTML.replace("Temperatura", temper);
+				loadTableWithMenus((mens));
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
+		}
+	}
+
+
+	function loadTableWithMenus(menu) {
+		const container = document.getElementById("contenitoreMenu");
+		container.innerHTML = "";
+		const listaGiorni = menu.Giorni || [];
+		if (listaGiorni.length === 0) {
+			container.innerHTML = "<p>Nessun giorno pianificato.</p>";
+			return;
+		}
+
+		listaGiorni.forEach(giorno => {
+			container.innerHTML += getTabellaView(giorno);
 		});
+	}
 
-		function loadTableListeners() {
-			const rows = document.querySelectorAll("#menuTable tbody tr"); // Selettore tabella modificato
-			rows.forEach(row => {
-				row.addEventListener("click", () => {
-					// Requisito: cliccando la riga si va alla pagina specifica del menu
-					const menuId = row.dataset.id; // Legge l'ID dal 'data-id'
-					if (menuId) {
-						//window.location.href = `/menu/${menuId}`; // Naviga alla pagina di quel menu
-						console.log("apro menu: " + menuId);
-					} else {
-						console.error("ID menu non trovato sulla riga.");
-					}
-				});
-			});
-		}
+	function getTabellaView(dati) {
+		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
+		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
+		const nomeGiorno = dati.Nome || 'Giorno';
 
-
-        async function caricaTavola(id) {
-			try {
-
-                const recipeData = {
-                    _id: id,
-                };
-                const fetchConfigData = {
-                    method: "POST",
-                    body: JSON.stringify(recipeData),
-                    headers: { "Content-Type": "application/json" }
-                };
-                const response = await fetch("/pian", fetchConfigData);
-                if (response.ok) {
-					const mens = await response.json();
-                    loadTableWithMenus((mens));
-                } else {
-                    console.log("Error with the response data");
-                }
-            } catch (err) {
-                console.log(`Error: ${err}`);
-            }
-        }
-
-
-		function loadTableWithMenus(menu) {
-			const table = document.getElementById("menuTable"); 
-			const tableBody = table.children[1];
-
-			tableBody.innerHTML = ""; // Pulisce la tabella
-
-
-				const tr = document.createElement("tr");
-
-				tr.dataset.id = menu._id; // Aggiunge il data-id per il click
-				tr.style.cursor = "pointer";
-
-				const titoloTd = document.createElement("td");
-			titoloTd.innerHTML = menu.Name;
-
-                const temperaturaTd = document.createElement("td");
-                switch (menu.Temperatura) {
-                    case 1:
-                        temperaturaTd.textContent = 'Estate';
-                        break;
-                    case 2:
-                        temperaturaTd.textContent = 'Inverno';
-                        break;
-                    default:
-                        temperaturaTd.textContent = 'OgniStagione';
-                }
-
-				tr.appendChild(titoloTd);
-                tr.appendChild(temperaturaTd);
-				tableBody.appendChild(tr);
-
-
-			loadTableListeners(); // Riapplica i listener alle nuove righe create
-
-		}
-	</script>
+		return `
+	<div class="card mb-3">
+		<div class="card-header bg-info text-white">
+			<h5 class="my-0">${nomeGiorno}</h5> 
+		</div>
+		<div class="card-body p-0">
+			<table class="table table-bordered mb-0">
+				<thead>
+					<tr>
+						<th style="width: 50%">Pranzo</th>
+						<th style="width: 50%">Cena</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>${nomePranzo}</td>
+						<td>${nomeCena}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	`;
+	}
+</script>

@@ -22,12 +22,12 @@ app.use(bodyParser.json());
 
 
 app.get('/ricette', async (req, res) => { 
-    try {
-    const allRic = await db.getAllRicette();
+	try {
+	const allRic = await db.getAllRicette();
 console.log(allRic);
-    res.render('allRicette', {legends: allRic});
+	res.render('allRicette', {legends: allRic});
   } catch (err) {
-    res.status(500).json({ message: err.message });
+	res.status(500).json({ message: err.message });
   }
 });
 
@@ -36,9 +36,9 @@ app.get('/menu', async (req, res) => {
 	try {
 	const menu = await db.getAllMenu();
 console.log(menu);
-    res.render('menu', {menu: menu});
+	res.render('menu', {menu: menu});
   } catch (err) {
-    res.status(500).json({ message: err.message });
+	res.status(500).json({ message: err.message });
   }
 });
 
@@ -47,31 +47,28 @@ app.get('/piano/:id', async (req, res) => {
 		const _id = req.params.id;
 		console.log("questo e lid "+_id);
 
-		const menu = await db.getMenuID(_id);
-		console.log(menu);
-		res.render('piano', { menu: menu });
+		const menus = await db.getMenuID(_id);
+		res.render('piano', { menu: menus });
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}
 });
 
 app.get('/ingredienti', async (req, res) => { 
-    try {
-    const ingredienti = await db.getAllIngredienti();
-	//console.log(ingredienti);
-    res.render('allIngredienti', {legends: ingredienti});
+	try {
+	const ingredienti = await db.getAllIngredienti();
+	res.render('allIngredienti', {legends: ingredienti});
   } catch (err) {
-    res.status(500).json({ message: err.message });
+	res.status(500).json({ message: err.message });
   }
 });
 
 app.get('/ingred', async (req, res) => { 
-    try {
-    const ingredienti = await db.getAllIngredienti();
-	//console.log("presi"+ingredienti);
-    res.json(ingredienti);
+	try {
+	const ingredienti = await db.getAllIngredienti();
+	res.json(ingredienti);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+	res.status(500).json({ message: err.message });
   }
 });
 
@@ -116,27 +113,79 @@ app.post('/men', async (req, res) => {
 
 app.post('/pian', async (req, res) => {
 	try {
-		const _id = req.body._id;
-		const menu = await db.getMenuID(_id);
-		res.json(menu);
+		const menuId = req.body._id;
+		const menuTrovato = await db.getMenuID(menuId);
+		if (menuTrovato) {
+			res.json(menuTrovato);
+		} else {
+			res.status(404).json({ message: "Menu non trovato" });
+		}
 	} catch (err) {
+		console.error("Errore nel recupero del menu:", err);
 		res.status(500).json({ message: err.message });
 	}
 });
 
 app.post('/Nmenu', async (req, res) => {
 	try {
-		const nome = req.body.Name || 'noName';  
-		const temperatura = req.body.Temperatura; 
-		//console.log("nuovaricetta: "+nome+ingredienti+temperatura+orario);
-		await db.insertMenu(nome, temperatura); 
+		const nome = req.body.Name || 'Menu Generato';
+		const temperaturaScelta = req.body.Temperatura;
+		const candidati = await db.getRicetteTemp(temperaturaScelta);
+
+		const giorniSettimana = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+
+	  /*  const giorniSettimana = [
+			"Luned&igrave;",
+			"Marted&igrave;",
+			"Mercoled&igrave;",
+			"Gioved&igrave;",
+			"Venerd&igrave;",
+			"Sabato",
+			"Domenica"
+		];*/
+		const giorniGenerati = [];
+		const idUsati = new Set();
+
+		// logica generazione menu
+		// TODO
+		const pesca = (orariAmmessi) => {
+			const pool = candidati.filter(r =>
+				orariAmmessi.includes(r.Orario) &&
+				!idUsati.has(r._id.toString())
+			);
+
+			if (pool.length === 0) return null;
+
+			const randIndex = Math.floor(Math.random() * pool.length);
+			const scelta = pool[randIndex];
+			idUsati.add(scelta._id.toString());
+			return scelta._id; // Ritorno solo l'ID
+		};
+
+		for (let giorno of giorniSettimana) {
+			const idPranzo = pesca([1, 3]);
+			const idCena = pesca([2, 3]);
+
+			if (idPranzo || idCena) {
+				giorniGenerati.push({
+					Nome: giorno,
+					Pranzo: idPranzo,
+					Cena: idCena
+				});
+			}
+		}
+		// fino a qui
+
+		await db.insertMenu(nome, temperaturaScelta, giorniGenerati);
+
 		const allMen = await db.getAllMenu();
-		res.json(allMen); 
+		res.json(allMen);
+
 	} catch (err) {
-		console.error(err)
-		res.status(500).json({"results": "none"});
+		console.error("Errore nella creazione menu:", err);
+		res.status(500).json({ "error": "Impossibile creare il menu" });
 	}
-}); 
+});
 
 app.post('/Nricetta', async (req, res) => {
 	try {
@@ -144,7 +193,6 @@ app.post('/Nricetta', async (req, res) => {
 		const ingredienti = req.body.Ingredienti || 'noIngred'; 
 		const temperatura = req.body.Temperatura; 
 		const orario = req.body.Orario;
-		//console.log("nuovaricetta: "+nome+ingredienti+temperatura+orario);
 		await db.insertRicetta(nome, ingredienti, temperatura, orario); 
 		const allRic = await db.getAllRicette();
 		res.json(allRic); 
@@ -155,7 +203,6 @@ app.post('/Nricetta', async (req, res) => {
 
 app.post('/NomeIngr', async (req, res) => { 
 	const id = req.body.Id; 
-// console.log('INDEX cerco ID:', id);
 	const ingred = await db.getIngredienteID(id);
 	res.json(ingred);
 });
@@ -195,20 +242,20 @@ app.post('/DELETETUTTOmen', async (req, res) => {
 
 
 app.use((req, res) => { 
-    res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`); 
+	res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`); 
 }); 
  
 db.init()
-    .then(() => { 
-        app.listen(53140, () => console.log('The server is up and running...')); 
-    }) 
-    .catch(err => { 
-        console.log('Problem setting up the database'); 
-        console.log(err); 
-    });
+	.then(() => { 
+		app.listen(53140, () => console.log('The server is up and running...')); 
+	}) 
+	.catch(err => { 
+		console.log('Problem setting up the database'); 
+		console.log(err); 
+	});
 // Gestione della chiusura del processo per disconnettersi da MongoDB
 process.on('SIGINT', async () => {
-    console.log('Chiusura del server...');
-    await db.close();
-    process.exit(0);
+	console.log('Chiusura del server...');
+	await db.close();
+	process.exit(0);
 });

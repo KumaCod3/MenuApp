@@ -16,71 +16,83 @@ const Ricetta = mongoose.model('Ricetta', ricettaSchema);
 
 const menuSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
-	Temperatura: { type: Number, required: true}
+	Temperatura: { type: Number, required: true },
+	Giorni: [{
+		Nome: { type: String },
+		Pranzo: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Ricetta' 
+		},
+		Cena: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Ricetta'
+		}
+	}]
 });
 const Menu = mongoose.model('Menu', menuSchema);
 
 class DBmenu {
-    constructor() {
-        this.dbUrl = 'mongodb://127.0.0.1:27017/menu';
-    }
+	constructor() {
+		this.dbUrl = 'mongodb://127.0.0.1:27017/menu';
+	}
 
-    async init() {
-        try {
-            await mongoose.connect(this.dbUrl, {
-                serverSelectionTimeoutMS: 5000 // Timeout per la selezione del server
-            });
-            console.log('Connesso a MongoDB tramite Mongoose!');
-        } catch (err) {
-            console.error('Errore di connessione a MongoDB:', err);
-            throw err;
-        }
-    }
+	async init() {
+		try {
+			await mongoose.connect(this.dbUrl, {
+				serverSelectionTimeoutMS: 5000 // Timeout per la selezione del server
+			});
+			console.log('Connesso a MongoDB tramite Mongoose!');
+		} catch (err) {
+			console.error('Errore di connessione a MongoDB:', err);
+			throw err;
+		}
+	}
 	
 	async getAllMenu() {
 		let menus = [];
-        try {
-            menus = await Menu.find().lean();
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
-            throw err;
-        }
+		try {
+			menus = await Menu.find()
+				.populate('Giorni.Pranzo')
+				.populate('Giorni.Cena')
+				.lean(); // forse da togliere
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
+			throw err;
+		}
 		return menus;
-    }
+	}
 	async getAllRicette() {
 		let ricette = [];
-        try {
-            ricette = await Ricetta.find().lean();
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
-            throw err;
-        }
+		try {
+			ricette = await Ricetta.find().lean();
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
+			throw err;
+		}
 		return ricette;
-    }
+	}
 	
 	async getAllRicetteJN() {
 		let ricette = [];
-        try {
-            ricette = await Ricetta.find().lean();
-			//console.log('Ecco le ricette: '+ ricette);
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
-            throw err;
-        }
+		try {
+			ricette = await Ricetta.find().lean();
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
+			throw err;
+		}
 		return ricette;
-    }
+	}
 	
 	async getAllIngredienti() {
 		let ingredienti = [];
-        try {
-            ingredienti = await Ingrediente.find().lean();
-			//console.log('Ecco gli ingredienti:');
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'estrazione degli ingredienti:', err);
-            throw err;
-        }
+		try {
+			ingredienti = await Ingrediente.find().lean();
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'estrazione degli ingredienti:', err);
+			throw err;
+		}
 		return ingredienti;
-    }
+	}
 	
 	async removeSingleIngredient(name) {
 		let updatedItem =null;
@@ -132,18 +144,16 @@ class DBmenu {
 	
 	async getAllIngredientiJN() {
 		let ingredienti = [];
-        try {
-            ingredienti = await Ricetta.find().lean();
-			//console.log('Ecco gli ingredienti: '+ ingredienti);
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'estrazione degli ingredienti:', err);
-            throw err;
-        }
+		try {
+			ingredienti = await Ricetta.find().lean();
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'estrazione degli ingredienti:', err);
+			throw err;
+		}
 		return ingredienti;
-    }
+	}
 	
 	async insertRicetta(nome, ingred, temperatura, orario) {
-//console.log("Provo");
 		let ingredArray=[];
 		for (let i=0; i<ingred.length;i++){
 			const nomeGiro=ingred[i];
@@ -152,31 +162,22 @@ class DBmenu {
 			let ingrediente = null;
 			try {
 				ingrediente = await Ingrediente.findById(ingredienti);
-				//console.log('ingrediente trovata per nome:', ingrediente);
 			} catch (err) {
-//console.log('L\' ingrediente ID non esiste:');
 				try {
-//console.log('Cerco per Nome :');
 					ingrediente = await Ingrediente.findOne({ Name: ingredienti });
-					
-//console.log('ingrediente trovata per nome:', ingrediente);
 				} catch (err) {
 					console.error('C\'è stato un problema nel trovare la ingrediente:', err);
 					throw err;
 				}
 			}
 			if (ingrediente == null){
-//console.log('provo a creare n ing');
-//console.log("Nomeee: "+nomeIng);
 				try {
 					let newIngrediente = new Ingrediente({
 						Name: ingredienti,
 						Price: 0
 					});
-//console.log(newIngrediente);
 					await newIngrediente.save();
 					ingrediente=newIngrediente;
-//console.log('Ingrediente inserito con successo: '+ingrediente);
 
 				} catch (err) {
 					console.error('C\'è stato un problema con l\'inserimento delingrediente:', err);
@@ -185,162 +186,151 @@ class DBmenu {
 			}
 			ingredArray.push(ingrediente);
 		}
-// console.log("Arrai finito: "+ingredArray);
 		try {
-//console.log("temp: "+temperatura+" ora: "+orario);
 			const newRicetta = new Ricetta({
 				Name: nome,
 				Ingredienti: ingredArray,
 				Temperatura: temperatura,
 				Orario: orario
 			});
-//console.log("temp: "+newRicetta.Temperatura+" ora: "+newRicetta.Orario);
 			await newRicetta.save();
 		} catch (err) {
 			console.error("non e un ingrediente");
 		}
 	}
 
-	async insertMenu(nome, temperatura) {
+	async insertMenu(nome, temperatura, giorni) {
 		let newMenu = null;
-        try {
-            newMenu = new Menu({
-                Name: nome,
-				Temperatura: temperatura
-            });
-console.log(newMenu);
-            await newMenu.save();
-            console.log('Menu inserito con successo2:');
+		try {
+			newMenu = new Menu({
+				Name: nome,
+				Temperatura: temperatura,
+				Giorni: giorni
+			});
+			await newMenu.save();
 
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'inserimento del menu :', err);
-            throw err;
-        }
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'inserimento del menu :', err);
+			throw err;
+		}
 		return newMenu;
-    }
+	}
 	
 	async insertIngrediente(nome, prezzo) {
 		let newIngrediente = null;
-console.log("IIIIgred: "+prezzo);
-        try {
-            newIngrediente = new Ingrediente({
-                Name: nome,
+		try {
+			newIngrediente = new Ingrediente({
+				Name: nome,
 				Price: prezzo
-            });
-console.log(newIngrediente);
-            await newIngrediente.save();
-            console.log('Ingrediente inserito con successo2:');
+			});
+			await newIngrediente.save();
 
-        } catch (err) {
-            console.error('C\'è stato un problema con l\'inserimento delingrediente:', err);
-            throw err;
-        }
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'inserimento delingrediente:', err);
+			throw err;
+		}
 		return newIngrediente;
-    }
+	}
 	
 	async getRicetteTemp(temp) {
-        let ricette = [];
-        if(!Number.isInteger(temp)) { 
-            return ricette; 
-        } 
+		let ricette = [];
+		if(!Number.isInteger(temp)) { 
+			return ricette; 
+		} 
  
-        try { 
-            ricette = await Ricetta.find({ Temperatura: temp }); 
-console.log("array: "+ricette.length);
-        } catch (err) { 
-            console.log('There was a problem finding the ricette'+err); 
-            throw err; 
-        } 
-        return ricette; 
-    }
+		try { 
+			ricette = await Ricetta.find({ Temperatura: temp }); 
+		} catch (err) { 
+			console.error('There was a problem finding the ricette'+err);
+			throw err; 
+		} 
+		return ricette; 
+	}
 	
 	async getRicetteOra(ora) {
-        let ricette = [];
-        if(!Number.isInteger(temp)) { 
-            return ricette; 
-        } 
+		let ricette = [];
+		if(!Number.isInteger(temp)) { 
+			return ricette; 
+		} 
  
-        try { 
-            ricette = await Ricetta.find({Orario: ora}); 
+		try { 
+			ricette = await Ricetta.find({Orario: ora}); 
 console.log("array: "+ricette.length);
-        } catch (err) { 
-            console.log('There was a problem finding the ricette'+err); 
-            throw err; 
-        } 
-        return ricette; 
-    }
+		} catch (err) { 
+			console.error('There was a problem finding the ricette'+err);
+			throw err; 
+		} 
+		return ricette; 
+	}
 	
 	async getRicetta(nome) {
-        let ricetta = null;
-        try {
-            ricetta = await Ricetta.findOne({ Name: nome });
-            //console.log('Ricetta trovata per nome:', ricetta);
-        } catch (err) {
-            console.error('C\'è stato un problema nel trovare la ricetta:', err);
-            throw err;
-        }
-        return ricetta;
-    }
+		let ricetta = null;
+		try {
+			ricetta = await Ricetta.findOne({ Name: nome });
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare la ricetta:', err);
+			throw err;
+		}
+		return ricetta;
+	}
 	
 	async getRicettaID(_id) {
-        let ricetta = null;
-        try {
-            ricetta = await Ricetta.findById(_id);
-            //console.log('Ricetta trovata per ID:', ricetta);
-        } catch (err) {
-            console.error('C\'è stato un problema nel trovare la ricetta:', err);
-            throw err;
-        }
-        return ricetta;
-    }
+		let ricetta = null;
+		try {
+			ricetta = await Ricetta.findById(_id);
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare la ricetta:', err);
+			throw err;
+		}
+		return ricetta;
+	}
 	
 	async getIngrediente(nome) {
-        let ingrediente = null;
+		let ingrediente = null;
 console.log("Almeno ci provo UN POCHINO???");
-        try {
-console.log("Almeno ci provo???");
-            ingrediente = await Ingrediente.findOne({ Name: nome });
-            console.log('ingrediente trovata per nome:', nome);
-        } catch (err) {
-            console.error('C\'è stato un problema nel trovare la ingrediente:', err);
-            throw err;
-        }
-        return ingrediente;
-    }
+		try {
+			ingrediente = await Ingrediente.findOne({ Name: nome });
+			console.log('ingrediente trovata per nome:', nome);
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare la ingrediente:', err);
+			throw err;
+		}
+		return ingrediente;
+	}
 	
 	async getIngredienteID(_id) {
-        let ingrediente = null;
-		//console.log('DB cerco ID:', _id);
-        try {
-            ingrediente = await Ingrediente.findById(_id).lean();
-        //    console.log('ingrediente trovata per ID:', ingrediente);
-        } catch (err) {
-            console.error('C\'è stato un problema nel trovare la ingrediente:', err);
-            throw err;
-        }
-        return ingrediente;
-    }
+		let ingrediente = null;
+		try {
+			ingrediente = await Ingrediente.findById(_id).lean();
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare la ingrediente:', err);
+			throw err;
+		}
+		return ingrediente;
+	}
 
-    async getMenuID(_id) {
-        let menu = null;
-        try {
-            menu = await Menu.findById(_id);
-            console.log('Menu trovata per ID:', menu);
-        } catch (err) {
-            console.error('C\'è stato un problema nel trovare il menu:', err);
-            throw err;
-        }
-        return menu;
-    }
+	async getMenuID(_id) {
+		let menu = null;
+		try {
+			menu = await Menu.findById(_id)
+				.populate('Giorni.Pranzo')
+				.populate('Giorni.Cena');
+			console.log('Menu trovata per ID:', menu);
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare il menu:', err);
+			throw err;
+		}
+		return menu;
+	}
 
-    async close() {
-        try {
-            await mongoose.disconnect();
-            console.log('Disconnesso da MongoDB.');
-        } catch (err) {
-            console.error('Errore durante la disconnessione da MongoDB:', err);
-        }
-    }
+	async close() {
+		try {
+			await mongoose.disconnect();
+			console.log('Disconnesso da MongoDB.');
+		} catch (err) {
+			console.error('Errore durante la disconnessione da MongoDB:', err);
+		}
+	}
 }
 
 module.exports = DBmenu;
