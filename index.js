@@ -132,9 +132,7 @@ app.post('/Nmenu', async (req, res) => {
 		const temperaturaScelta = req.body.Temperatura;
 		const candidati = await db.getRicetteTemp(temperaturaScelta);
 
-		const giorniSettimana = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
-
-	  /*  const giorniSettimana = [
+	    const giorniSettimana = [
 			"Luned&igrave;",
 			"Marted&igrave;",
 			"Mercoled&igrave;",
@@ -142,11 +140,10 @@ app.post('/Nmenu', async (req, res) => {
 			"Venerd&igrave;",
 			"Sabato",
 			"Domenica"
-		];*/
+		];
 		const giorniGenerati = [];
 		const idUsati = new Set();
 
-		// logica generazione menu
 		// TODO
 		const pesca = (orariAmmessi) => {
 			const pool = candidati.filter(r =>

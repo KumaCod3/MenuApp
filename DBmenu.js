@@ -239,7 +239,12 @@ class DBmenu {
 		} 
  
 		try { 
-			ricette = await Ricetta.find({ Temperatura: temp }); 
+			ricette = await Ricetta.find({
+				$or: [
+					{ Temperatura : temp },
+					{ Temperatura: 3 },
+					{ Temperatura: 0 }
+				] });
 		} catch (err) { 
 			console.error('There was a problem finding the ricette'+err);
 			throw err; 
