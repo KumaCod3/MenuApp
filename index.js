@@ -130,49 +130,92 @@ app.post('/Nmenu', async (req, res) => {
 	try {
 		const nome = req.body.Name || 'Menu Generato';
 		const temperaturaScelta = req.body.Temperatura;
+
 		const candidati = await db.getRicetteTemp(temperaturaScelta);
 
-	    const giorniSettimana = [
-			"Luned&igrave;",
-			"Marted&igrave;",
-			"Mercoled&igrave;",
-			"Gioved&igrave;",
-			"Venerd&igrave;",
-			"Sabato",
-			"Domenica"
+		const giorniSettimana = [
+			"Luned&igrave;", "Marted&igrave;", "Mercoled&igrave;",
+			"Gioved&igrave;", "Venerd&igrave;", "Sabato", "Domenica"
 		];
-		const giorniGenerati = [];
-		const idUsati = new Set();
 
-		// TODO
-		const pesca = (orariAmmessi) => {
-			const pool = candidati.filter(r =>
-				orariAmmessi.includes(r.Orario) &&
-				!idUsati.has(r._id.toString())
+		const giorniGenerati = [];
+		const idRicetteUsate = new Set();
+
+		const ingredientiLastSeen = new Map();
+
+		// Funzione helper per estrarre gli ID degli ingredienti come stringhe
+		const getIngIds = (ricetta) => {
+			if (!ricetta.Ingredienti) return [];
+			return ricetta.Ingredienti.map(ing =>
+				(ing._id ? ing._id.toString() : ing.toString())
 			);
+		};
+
+		// Funzione per calcolare distanza di una ricetta
+		const calcolaPunteggio = (ricetta, giornoIndex) => {
+			const ingIds = getIngIds(ricetta);
+			let distanzaMinima = 1000; // Valore alto di default
+
+			for (let ingId of ingIds) {
+				if (ingredientiLastSeen.has(ingId)) {
+					const ultimoGiornoVisto = ingredientiLastSeen.get(ingId);
+					const distanza = giornoIndex - ultimoGiornoVisto;
+					if (distanza < distanzaMinima) {
+						distanzaMinima = distanza;
+					}
+				}
+			}
+			// casualità per variare se le distanze sono uguali
+			return distanzaMinima + Math.random();
+		};
+		const selezionaRicetta = (orariAmmessi, giornoIndex, ricettaDaEvitare = null) => {
+			// 1. Filtra per Orario e non già usata nel menu
+			let pool = candidati.filter(r =>
+				orariAmmessi.includes(r.Orario) &&
+				!idRicetteUsate.has(r._id.toString())
+			);
+
+			// 2. CONSTRAINT RIGIDO: da evitare ripetizioni stesso giorno
+			if (ricettaDaEvitare) {
+				const ingredientiDaEvitare = new Set(getIngIds(ricettaDaEvitare));
+				pool = pool.filter(r => {
+					const ingredientiR = getIngIds(r);
+					return !ingredientiR.some(ing => ingredientiDaEvitare.has(ing));
+				});
+			}
 
 			if (pool.length === 0) return null;
 
-			const randIndex = Math.floor(Math.random() * pool.length);
-			const scelta = pool[randIndex];
-			idUsati.add(scelta._id.toString());
-			return scelta._id; // Ritorno solo l'ID
+			// 3. CONSTRAINT SOFT: Ordina per  distanza
+			pool.sort((a, b) => {
+				const scoreA = calcolaPunteggio(a, giornoIndex);
+				const scoreB = calcolaPunteggio(b, giornoIndex);
+				return scoreB - scoreA;
+			});
+			const scelta = pool[0];
+
+			// 4. Aggiorna mappa
+			idRicetteUsate.add(scelta._id.toString());
+			const ingIds = getIngIds(scelta);
+			ingIds.forEach(id => ingredientiLastSeen.set(id, giornoIndex));
+
+			return scelta;
 		};
 
-		for (let giorno of giorniSettimana) {
-			const idPranzo = pesca([1, 3]);
-			const idCena = pesca([2, 3]);
+		// --- CICLO GENERAZIONE ---
+		for (let i = 0; i < giorniSettimana.length; i++) {
+			const giorno = giorniSettimana[i];
+			const ricettaPranzo = selezionaRicetta([1, 3], i, null);
+			const ricettaCena = selezionaRicetta([2, 3], i, ricettaPranzo);
 
-			if (idPranzo || idCena) {
+			if (ricettaPranzo || ricettaCena) {
 				giorniGenerati.push({
 					Nome: giorno,
-					Pranzo: idPranzo,
-					Cena: idCena
+					Pranzo: ricettaPranzo ? ricettaPranzo._id : null,
+					Cena: ricettaCena ? ricettaCena._id : null
 				});
 			}
 		}
-		// fino a qui
-
 		await db.insertMenu(nome, temperaturaScelta, giorniGenerati);
 
 		const allMen = await db.getAllMenu();

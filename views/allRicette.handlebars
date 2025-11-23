@@ -1,6 +1,7 @@
 <a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Gestisci Ingredienti</a>
-<button id="DROPButton" class="btn btn-primary">ELIMINA TUTTE LE RICETTE</BUTTON>
+<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTE LE RICETTE</BUTTON>
+<button id="loadJSON" class="btn btn-secondary mb-3">Carica JSON</button>
 <h2 class="display-4">Le Ricette</h2>
 <table id="legendTable" class="table table-bordered table-hover"> 
     <thead> 
@@ -166,7 +167,20 @@ function updateHiddenInput() {
                 }
             });
         });
-    }
+	}
+// loadJSON
+document.getElementById("loadJSON").addEventListener("click", async (e) => {
+	e.preventDefault();
+
+	try {
+
+
+
+	} catch (err) {
+		console.log(`Error: ${err}`);
+	}
+});
+
 // DROPButton
 document.getElementById("DROPButton").addEventListener("click", async (e) => {
     e.preventDefault();
