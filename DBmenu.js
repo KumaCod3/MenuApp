@@ -10,7 +10,8 @@ const ricettaSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
 	Ingredienti: [{ type: mongoose.Types.ObjectId, ref: 'Ingrediente' }],
 	Temperatura: { type: Number, required: true},
-	Orario: { type: Number, required: true}
+	Orario: { type: Number, required: true },
+	Note: { type: String, required: false }
 });
 const Ricetta = mongoose.model('Ricetta', ricettaSchema);
 

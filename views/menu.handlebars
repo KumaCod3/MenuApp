@@ -94,108 +94,104 @@
 		}
 	});
 
-		async function caricaTavola() {
-			try {
-				const recipeData = {
-					Name: 'pino',
-				};
-				const fetchConfigData = {
-					method: "POST",
-					body: JSON.stringify(recipeData),
-					headers: { "Content-Type": "application/json" }
-				};
-				const response = await fetch("/men", fetchConfigData);
-				if (response.ok) {
-					const mens = await response.json();
-					loadTableWithMenus((mens));
-				} else {
-					console.log("Error with the response data");
-				}
-			} catch (err) {
-				console.log(`Error: ${err}`);
+	async function caricaTavola() {
+		try {
+			const recipeData = {
+				Name: 'pino',
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/men", fetchConfigData);
+			if (response.ok) {
+				const mens = await response.json();
+				loadTableWithMenus((mens));
+			} else {
+				console.log("Error with the response data");
 			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
+		}
+	}
+
+	document.getElementById("submitButton").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			let titolo = document.getElementById("Titolo").value.trim();
+
+			// Requisito: se il nome non c'è, ne inventa uno random
+			if (titolo === "") {
+				const adjectives = ["Delizioso", "Saporito", "Speciale", "dello Chef", "Rapido"];
+				const nouns = ["Pranzo", "Piatto", "Menu", "Banchetto", "Gusto"];
+				const randAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+				const randNoun = nouns[Math.floor(Math.random() * nouns.length)];
+				titolo = `${randNoun} ${randAdj}`;
+			}
+
+			const Temperatura1 = document.getElementById("Temperatura1").checked;
+			const Temperatura2 = document.getElementById("Temperatura2").checked;
+			const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
+			console.log("titolo: "+titolo+" t1= " + Temperatura1 + " T2: " + Temperatura2 + " Tot: " + Temperatura);
+
+			const menuData = {
+				Name: titolo,
+				Temperatura: Temperatura 
+			};
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(menuData),
+				headers: {
+					"Content-Type": "application/json"
+				}
+			};
+
+			// Endpoint modificato per creare un NUOVO MENU
+			const response = await fetch("/Nmenu", fetchConfigData);
+
+			if(response.ok) {
+				const menus = await response.json(); // Si aspetta la lista aggiornata dei menu
+				loadTableWithMenus(menus); // Ricarica la tabella con i nuovi dati
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
+		}
+	});
+
+	function loadTableWithMenus(menus) {
+		const table = document.getElementById("menuTable");
+		const tableBody = table.children[1];
+		tableBody.innerHTML = "";
+
+		for (const menu of menus) {
+			const tr = document.createElement("tr");
+			tr.dataset.id = menu._id;
+			tr.style.cursor = "pointer";
+
+			const titoloTd = document.createElement("td");
+			titoloTd.innerHTML = menu.Name; 
+			const temperaturaTd = document.createElement("td");
+			switch (menu.Temperatura) {
+				case 1:
+					temperaturaTd.textContent = 'Estate';
+					break;
+				case 2:
+					temperaturaTd.textContent = 'Inverno';
+					break;
+				default:
+					temperaturaTd.textContent = 'OgniStagione';
+			}
+			tr.appendChild(titoloTd);
+			tr.appendChild(temperaturaTd);
+			tableBody.appendChild(tr);
 		}
 
-		document.getElementById("submitButton").addEventListener("click", async (e) => {
-			e.preventDefault();
-
-			try {
-				let titolo = document.getElementById("Titolo").value.trim();
-
-				// Requisito: se il nome non c'è, ne inventa uno random
-				if (titolo === "") {
-					const adjectives = ["Delizioso", "Saporito", "Speciale", "dello Chef", "Rapido"];
-					const nouns = ["Pranzo", "Piatto", "Menu", "Banchetto", "Gusto"];
-					const randAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-					const randNoun = nouns[Math.floor(Math.random() * nouns.length)];
-					titolo = `${randNoun} ${randAdj}`;
-				}
-
-				const Temperatura1 = document.getElementById("Temperatura1").checked;
-				const Temperatura2 = document.getElementById("Temperatura2").checked;
-				const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
-				console.log("titolo: "+titolo+" t1= " + Temperatura1 + " T2: " + Temperatura2 + " Tot: " + Temperatura);
-
-				const menuData = {
-					Name: titolo,
-					Temperatura: Temperatura 
-				};
-
-				const fetchConfigData = {
-					method: "POST",
-					body: JSON.stringify(menuData),
-					headers: {
-						"Content-Type": "application/json"
-					}
-				};
-
-				// Endpoint modificato per creare un NUOVO MENU
-				const response = await fetch("/Nmenu", fetchConfigData);
-
-				if(response.ok) {
-					const menus = await response.json(); // Si aspetta la lista aggiornata dei menu
-					loadTableWithMenus(menus); // Ricarica la tabella con i nuovi dati
-				} else {
-					console.log("Error with the response data");
-				}
-			} catch (err) {
-				console.log(`Error: ${err}`);
-			}
-		});
-
-		// Funzione modificata per caricare i menu (invece degli ingredienti)
-		function loadTableWithMenus(menus) {
-			const table = document.getElementById("menuTable"); // ID tabella modificato
-			const tableBody = table.children[1];
-
-			tableBody.innerHTML = ""; // Pulisce la tabella
-
-			for (const menu of menus) {
-				const tr = document.createElement("tr");
-				// Assicurati che l'oggetto 'menu' restituito dal server abbia 'id', 'Titolo', e 'Stagione'
-				tr.dataset.id = menu._id; // Aggiunge il data-id per il click
-				tr.style.cursor = "pointer";
-
-				const titoloTd = document.createElement("td");
-				titoloTd.innerHTML = menu.Name; 
-				const temperaturaTd = document.createElement("td");
-				switch (menu.Temperatura) {
-					case 1:
-						temperaturaTd.textContent = 'Estate';
-						break;
-					case 2:
-						temperaturaTd.textContent = 'Inverno';
-						break;
-					default:
-						temperaturaTd.textContent = 'OgniStagione';
-				}
-
-				tr.appendChild(titoloTd);
-				tr.appendChild(temperaturaTd);
-				tableBody.appendChild(tr);
-			}
-
-			loadTableListeners(); // Riapplica i listener alle nuove righe create
-			document.getElementById("newMenuForm").reset(); // Resetta il form corretto
-		}
+		loadTableListeners();
+		document.getElementById("newMenuForm").reset();
+	}
 	</script>

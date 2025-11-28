@@ -2,289 +2,389 @@
 <a href="/ingredienti" class="btn btn-secondary mb-3">Gestisci Ingredienti</a>
 <button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTE LE RICETTE</BUTTON>
 <button id="loadJSON" class="btn btn-secondary mb-3">Carica JSON</button>
+<button id="dwnJSON" class="btn btn-secondary mb-3">Scarica JSON</button>
 <h2 class="display-4">Le Ricette</h2>
 <table id="legendTable" class="table table-bordered table-hover"> 
-    <thead> 
-        <th>Nome</th><th>Ingredienti</th><th>Stagione</th><th>Pasto</th>
-    </thead> 
-	    <tbody>
-	    {{#each legends}} 
-            <tr> 
-                <td> 
-                    {{this/Name}}
-                </td> 
-                <td> 
-                    {{this/Ingredienti}} 
-                </td>  
-			    <td> 
-                    {{this/Temperatura}}
-                </td>
-			    <td> 
-                    {{this/Orario}}
-                </td>			
-            </tr> 
-        {{/each}} 
-	    </tbody>
+	<thead> 
+		<th>Nome</th><th>Ingredienti</th><th>Stagione</th><th>Pasto</th>
+	</thead> 
+		<tbody>
+		{{#each legends}} 
+			<tr> 
+				<td> 
+					{{this/Name}}
+				</td> 
+				<td> 
+					{{this/Ingredienti}} 
+				</td>  
+				<td> 
+					{{this/Temperatura}}
+				</td>
+				<td> 
+					{{this/Orario}}
+				</td>			
+			</tr> 
+		{{/each}} 
+		</tbody>
 </table>
 
 <h3 class="display-5">Aggiungi nuova ricetta:</h3>
 <form id="newRecipeForm">
-    <div class="form-group">
-        <label for="Name">Nome Ricetta</label>
-        <input type="text" class="form-control" name="Name" id="Name" required>
-    </div>
+	<div class="form-group">
+		<label for="Name">Nome Ricetta</label>
+		<input type="text" class="form-control" name="Name" id="Name" required>
+	</div>
 	<div class="form-group" id="ingredienti-container">
-    <label>Ingredienti</label>
-    <div class="ingredient-input">
-        <input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-        <datalist id="lista-ingredienti"></datalist>
-    </div>
-    <button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
-    <input type="hidden" name="Ingredienti" id="Ingredienti">
+	<label>Ingredienti</label>
+	<div class="ingredient-input">
+		<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
+		<datalist id="lista-ingredienti"></datalist>
+	</div>
+	<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
+	<input type="hidden" name="Ingredienti" id="Ingredienti">
 	</div>
 
 
 <div class="row mb-3">
-        <div class="col-2">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
-                <label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
-            </div>
-        </div>
-        <div class="col-2">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
-                <label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
-            </div>
-        </div>
-    </div>
+		<div class="col-2">
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
+				<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+			</div>
+		</div>
+		<div class="col-2">
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
+				<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
+			</div>
+		</div>
+	</div>
 
-    <div class="row mb-3">
-        <div class="col-2">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
-                <label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
-            </div>
-        </div>
-        <div class="col-2">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
-                <label class="form-check-label" for="Orario2">Ricetta di Cena</label>
-            </div>
-        </div>
-    </div>
+	<div class="row mb-3">
+		<div class="col-2">
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
+				<label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
+			</div>
+		</div>
+		<div class="col-2">
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
+				<label class="form-check-label" for="Orario2">Ricetta di Cena</label>
+			</div>
+		</div>
+	</div>
 
-    <button id="submitButton" class="btn btn-primary">Aggiungi</button>
+	<button id="submitButton" class="btn btn-primary">Aggiungi</button>
 </form>
 <script>
-    document.addEventListener("DOMContentLoaded", (event) => {
-        populateIngredientsDropdown(); // Nuova funzione per caricare gli ingredienti nel <select>
+	document.addEventListener("DOMContentLoaded", (event) => {
+		populateIngredientsDropdown(); // Nuova funzione per caricare gli ingredienti nel <select>
 		caricaTavola();
-        loadTableListeners();
+		loadTableListeners();
 		const displayInput = document.getElementById("ingrediente-display");
 		displayInput.addEventListener('input', updateHiddenInput);
 		const addIngredienteButton = document.getElementById("add-ingrediente");
 		addIngredienteButton.addEventListener("click", addIngrediente);
-    });
+	});
 
 const ingredientiMap = {};
 
 async function populateIngredientsDropdown() {
-    try {
-        const response = await fetch('/ingred');
-        if (response.ok) {
-            const ingredienti = await response.json();
-            const dataList = document.getElementById("lista-ingredienti");
+	try {
+		const response = await fetch('/ingred');
+		if (response.ok) {
+			const ingredienti = await response.json();
+			const dataList = document.getElementById("lista-ingredienti");
 
-            ingredienti.forEach(ingrediente => {
-                const option = document.createElement("option");
-                option.value = ingrediente.Name; 
-                dataList.appendChild(option);
-                
-                ingredientiMap[ingrediente.Name] = ingrediente._id;
-            });
-        } else {
-            console.log("Errore nel caricamento degli ingredienti.");
-        }
-    } catch (err) {
-        console.log(`Errore nel fetch degli ingredienti: ${err}`);
-    }
+			ingredienti.forEach(ingrediente => {
+				const option = document.createElement("option");
+				option.value = ingrediente.Name; 
+				dataList.appendChild(option);
+				
+				ingredientiMap[ingrediente.Name] = ingrediente._id;
+			});
+		} else {
+			console.log("Errore nel caricamento degli ingredienti.");
+		}
+	} catch (err) {
+		console.log(`Errore nel fetch degli ingredienti: ${err}`);
+	}
 }
 
 function addIngrediente() {
-    const container = document.getElementById("ingredienti-container");
-    const newIngredientInput = document.createElement("div");
-    newIngredientInput.classList.add("ingredient-input");
+	const container = document.getElementById("ingredienti-container");
+	const newIngredientInput = document.createElement("div");
+	newIngredientInput.classList.add("ingredient-input");
    
-    newIngredientInput.innerHTML = // "";
+	newIngredientInput.innerHTML = // "";
 	`
 		<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-        <button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
-    `;
-    
-    container.appendChild(newIngredientInput);
-    
-    newIngredientInput.querySelector(".remove-ingrediente").addEventListener("click", () => {
-        container.removeChild(newIngredientInput);
-        updateHiddenInput(); 
-    });
+		<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
+	`;
+	
+	container.appendChild(newIngredientInput);
+	
+	newIngredientInput.querySelector(".remove-ingrediente").addEventListener("click", () => {
+		container.removeChild(newIngredientInput);
+		updateHiddenInput(); 
+	});
 }
 
 function updateHiddenInput() {
-    const hiddenInput = document.getElementById("Ingredienti");
-    const ingredientInputs = document.querySelectorAll(".ingredient-input input");
-    
-    const ingredientValues = Array.from(ingredientInputs).map(input => input.value).filter(val => val);
-    hiddenInput.value = ingredientValues.join(",");
+	const hiddenInput = document.getElementById("Ingredienti");
+	const ingredientInputs = document.querySelectorAll(".ingredient-input input");
+	
+	const ingredientValues = Array.from(ingredientInputs).map(input => input.value).filter(val => val);
+	hiddenInput.value = ingredientValues.join(",");
 }
 
 
-    function loadTableListeners() {
-        const rows = document.querySelectorAll("#legendTable tbody tr"); 
-        rows.forEach(row => {
-            row.addEventListener("click", async () => {
-                const recipeName = row.cells[0].textContent.trim();
-                const jsonRecipeName = { 'Name': recipeName };
+	function loadTableListeners() {
+		const rows = document.querySelectorAll("#legendTable tbody tr"); 
+		rows.forEach(row => {
+			row.addEventListener("click", async () => {
+				const recipeName = row.cells[0].textContent.trim();
+				const jsonRecipeName = { 'Name': recipeName };
 				//console.log("clicco: "+recipeName);
-                try {
-                    const fetchConfigData = {
-                        method: "POST",
-                        body: JSON.stringify(jsonRecipeName),
-                        headers: {
+				try {
+					const fetchConfigData = {
+						method: "POST",
+						body: JSON.stringify(jsonRecipeName),
+						headers: {
 							"Content-Type": "application/json"
 						}
-                    };
+					};
 
-                    const response = await fetch("/DELETERicetta", fetchConfigData);
-                    if(response.ok) {
-                        const recipes = await response.json();
-                        loadTableWithRecipes((recipes)); 
-                    } else {
-                        console.log("Error with the response data");
-                    }
-                } catch (err) {
-                    console.log(`Error: ${err}`);
-                }
-            });
-        });
+					const response = await fetch("/DELETERicetta", fetchConfigData);
+					if(response.ok) {
+						const recipes = await response.json();
+						loadTableWithRecipes((recipes)); 
+					} else {
+						console.log("Error with the response data");
+					}
+				} catch (err) {
+					console.log(`Error: ${err}`);
+				}
+			});
+		});
 	}
+
+
+	//dwnJSON
+	document.getElementById("dwnJSON").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			const recipeData = {
+				Name: 'pino',
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/ricet", fetchConfigData);
+			if (!response.ok) {
+				throw new Error(`Errore server: ${response.status}`);
+			}
+			const data = await response.json();
+			const jsonString = JSON.stringify(data, null, 2);
+			const blob = new Blob([jsonString], { type: "application/json" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			const date = new Date().toISOString().split('T')[0];
+			link.download = `ricette_backup_${date}.json`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile scaricare il file JSON: " + err.message);
+		}
+	});
+
+
 // loadJSON
-document.getElementById("loadJSON").addEventListener("click", async (e) => {
+	document.getElementById("loadJSON").addEventListener("click", (e) => {
+		e.preventDefault();
+
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+
+		input.onchange = async (event) => {
+			const fileCaricato = event.target.files[0];
+			if (!fileCaricato) return;
+
+			try {
+				const text = await fileCaricato.text();
+				const file = JSON.parse(text);
+
+				await caricaJSON(file);
+
+				location.reload();
+
+			} catch (err) {
+				console.error("Errore:", err);
+				alert("Errore nel file JSON: " + err.message);
+			}
+		};
+
+		input.click();
+	});
+
+	async function caricaJSON(file) {
+		if (!Array.isArray(file)) {
+			file = [file];
+		}
+		for (let i = 0; i < file.length; i++) {
+			const ricetta = file[i];
+			console.log(`--> Elaborazione elemento ${i} SU ${file.length}:`, JSON.stringify(ricetta));
+			const recipeData = {
+				Name: ricetta.Name,
+				Ingredienti: ricetta.Ingredienti,
+				Temperatura: ricetta.Temperatura,
+				Orario: ricetta.Orario,
+				Note: ricetta.Note || ""
+			};
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 1000);
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" },
+				signal: controller.signal // Colleghiamo il timeout alla fetch
+			};
+
+			try {
+				const response = await fetch("/NricettaJSN", fetchConfigData);
+				clearTimeout(timeoutId); // Cancelliamo il timer se ha risposto in tempo
+
+				if (!response.ok) {
+					console.error(`Errore Server (Elem ${i}): ${response.status}`);
+				} else {
+					console.log(`Elemento ${i} caricato!`);
+				}
+
+			} catch (err) {
+				if (err.name === 'AbortError') {
+					console.error(`Timeout: Il server non ha risposto in tempo per l'elemento ${i}`);
+				} else {
+					console.error(` Errore Generico (Elem ${i}):`, err);
+				}
+			}
+		}
+	}
+
+
+// DROPButton
+document.getElementById("DROPButton").addEventListener("click", async (e) => {
 	e.preventDefault();
 
 	try {
-
-
-
+		const recipeData = {
+			Name: "ciao",
+		};
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(recipeData),
+			headers: { "Content-Type": "application/json" }
+		};
+		console.log("config data: " + fetchConfigData.body);
+		
+		// Endpoint per eliminare tutte le ricette
+		const response = await fetch("/DELETETUTTOric", fetchConfigData);
+		if (response.ok) {
+			const recipes = await response.json();
+			loadTableWithRecipes(recipes);
+		} else {
+			console.log("Error with the response data");
+		}
 	} catch (err) {
 		console.log(`Error: ${err}`);
 	}
 });
 
-// DROPButton
-document.getElementById("DROPButton").addEventListener("click", async (e) => {
-    e.preventDefault();
-
-    try {
-	    const recipeData = {
-            Name: "ciao",
-        };
-		const fetchConfigData = {
-            method: "POST",
-            body: JSON.stringify(recipeData),
-            headers: { "Content-Type": "application/json" }
-        };
-        console.log("config data: " + fetchConfigData.body);
-        
-        // Endpoint per eliminare tutte le ricette
-        const response = await fetch("/DELETETUTTOric", fetchConfigData);
-        if (response.ok) {
-            const recipes = await response.json();
-            loadTableWithRecipes(recipes);
-        } else {
-            console.log("Error with the response data");
-        }
-    } catch (err) {
-        console.log(`Error: ${err}`);
-    }
-});
-
-    // Listener per l'invio del form della nuova ricetta
+	// Listener per l'invio del form della nuova ricetta
 document.getElementById("submitButton").addEventListener("click", async (e) => {
-    e.preventDefault();
+	e.preventDefault();
 
-    try {
-        const Name = document.getElementById("Name").value;
+	try {
+		const Name = document.getElementById("Name").value;
 
-        // Ottieni tutti gli input degli ingredienti
-        const hiddenInputs = document.querySelectorAll(".ingredient-input input"); 
-        const ingredienti = Array.from(hiddenInputs).map(input => {
-            const ingredienteNome = input.value;
-            const ingredienteId = ingredientiMap[ingredienteNome];
+		// Ottieni tutti gli input degli ingredienti
+		const hiddenInputs = document.querySelectorAll(".ingredient-input input"); 
+		const ingredienti = Array.from(hiddenInputs).map(input => {
+			const ingredienteNome = input.value;
+			const ingredienteId = ingredientiMap[ingredienteNome];
 
-            // Se l'ingrediente non esiste, usa il nome; altrimenti usa l'ID
-            return ingredienteId ? ingredienteId : ingredienteNome;
-        });
+			// Se l'ingrediente non esiste, usa il nome; altrimenti usa l'ID
+			return ingredienteId ? ingredienteId : ingredienteNome;
+		});
 
-        console.log(Array.from(hiddenInputs));
-        const Temperatura1 = document.getElementById("Temperatura1").checked;
+		console.log(Array.from(hiddenInputs));
+		const Temperatura1 = document.getElementById("Temperatura1").checked;
 		const Temperatura2 = document.getElementById("Temperatura2").checked;
 		const Orario1 = document.getElementById("Orario1").checked;
 		const Orario2 = document.getElementById("Orario2").checked;
-        const Orario = (Orario1?1:0)+(Orario2?2:0);
+		const Orario = (Orario1?1:0)+(Orario2?2:0);
 		const Temperatura = (Temperatura1?1:0)+(Temperatura2?2:0);
 		console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
-        const recipeData = {
-            Name: Name,
-            Ingredienti: ingredienti,
-            Temperatura: Temperatura,
-            Orario: Orario
-        };
-        console.log(JSON.stringify(recipeData));
+		const recipeData = {
+			Name: Name,
+			Ingredienti: ingredienti,
+			Temperatura: Temperatura,
+			Orario: Orario
+		};
+		console.log(JSON.stringify(recipeData));
 
-        const fetchConfigData = {
-            method: "POST",
-            body: JSON.stringify(recipeData),
-            headers: { "Content-Type": "application/json" }
-        };
-        console.log("config data: " + fetchConfigData.body);
-        
-        // Endpoint per creare una nuova ricetta
-        const response = await fetch("/Nricetta", fetchConfigData);
-        if (response.ok) {
-            const recipes = await response.json();
-            loadTableWithRecipes(recipes);
-        } else {
-            console.log("Error with the response data");
-        }
-    } catch (err) {
-        console.log(`Error: ${err}`);
-    }
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(recipeData),
+			headers: { "Content-Type": "application/json" }
+		};
+		console.log("config data: " + fetchConfigData.body);
+		
+		// Endpoint per creare una nuova ricetta
+		const response = await fetch("/Nricetta", fetchConfigData);
+		if (response.ok) {
+			const recipes = await response.json();
+			loadTableWithRecipes(recipes);
+		} else {
+			console.log("Error with the response data");
+		}
+	} catch (err) {
+		console.log(`Error: ${err}`);
+	}
 });
 
 
 
 	async function caricaTavola(){
 		try {
-            const recipeData = {
-                Name: 'pino',
-            };
+			const recipeData = {
+				Name: 'pino',
+			};
 			const fetchConfigData = {
-                method: "POST",
-                body: JSON.stringify(recipeData),
-                headers: { "Content-Type": "application/json" }
-            };
-            const response = await fetch("/ricet", fetchConfigData);
-            if(response.ok) {
-                const recipes = await response.json();
-                loadTableWithRecipes((recipes)); 
-            } else {
-                console.log("Error with the response data");
-            }
-        } catch (err) {
-            console.log(`Error: ${err}`);
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/ricet", fetchConfigData);
+			if(response.ok) {
+				const recipes = await response.json();
+				loadTableWithRecipes((recipes)); 
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
 		}
-    }
+	}
 
 	async function loadTableWithRecipes(recipes) {
 		const tableBody = document.querySelector("#legendTable tbody");
@@ -322,7 +422,7 @@ document.getElementById("submitButton").addEventListener("click", async (e) => {
 					break;
 				default:
 					orarioTd.textContent = 'OgniOra';
-            }
+			}
 
 			tr.appendChild(nameTd);
 			tr.appendChild(ingredienteTd);

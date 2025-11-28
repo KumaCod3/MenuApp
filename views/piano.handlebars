@@ -1,6 +1,7 @@
 <a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
 <a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
+<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica MENU</button>
 <h2 class="display-4">Ecco il tuo menu</h2>
 <p>
 	<h3 id="intestazione">Name per l'Temperatura</h3>
@@ -17,7 +18,8 @@
 		const id = segments.pop();
 		caricaTavola(id);
 	});
-
+	var name = "";
+	var menuu = "";
 
 	async function caricaTavola(id) {
 		try {
@@ -33,9 +35,11 @@
 			const response = await fetch("/pian", fetchConfigData);
 			if (response.ok) {
 				const mens = await response.json();
+				menuu = mens;
 				var div = document.getElementById("intestazione");
 				div.innerHTML = div.innerHTML.replace("Name", mens.Name);
 				var temper = "";
+				name = mens.Name;
 				switch (mens.Temperatura) {
 					case 1:
 						temper = 'Estate';
@@ -57,6 +61,54 @@
 		}
 	}
 
+	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			const data = menuu;
+			const decodeHTML = (html) => {
+				const txt = document.createElement("textarea");
+				txt.innerHTML = html;
+				return txt.value;
+			};
+			let textContent = "";
+			if (data.Name) {
+				textContent += `${data.Name}\n\n`;
+			}
+			if (data.Giorni && Array.isArray(data.Giorni)) {
+				data.Giorni.forEach(giorno => {
+					const nomeGiorno = decodeHTML(giorno.Nome || "");
+					textContent += `${nomeGiorno}\n`;
+					textContent += `\tPranzo:\n`;
+					if (giorno.Pranzo && giorno.Pranzo.Name) {
+						textContent += `\t\t${giorno.Pranzo.Name}\n`;
+					} else {
+						textContent += `\t\t-\n`;
+					}
+					textContent += `\tCena:\n`;
+					if (giorno.Cena && giorno.Cena.Name) {
+						textContent += `\t\t${giorno.Cena.Name}\n`;
+					} else {
+						textContent += `\t\t-\n`;
+					}
+					textContent += `\n`;
+				});
+			}
+
+			const blob = new Blob([textContent], { type: "text/plain" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `${data.Name || 'menu'}.txt`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile scaricare il file TXT: " + err.message);
+		}
+	});
 
 	function loadTableWithMenus(menu) {
 		const container = document.getElementById("contenitoreMenu");

@@ -83,7 +83,7 @@ app.post('/Ningrediente', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-}); 
+});
 
 app.post('/DELETEingredient', async (req, res) => { 
 	const Name = req.body.Name; 
@@ -102,8 +102,12 @@ app.post('/DELETERicetta', async (req, res) => {
 });
 
 app.post('/ricet', async (req, res) => { 
-	const allRic = await db.getAllRicette();
-	res.json(allRic);
+	try {
+		const allRic = await db.getAllRicette();
+		res.json(allRic);
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
 });
 
 app.post('/men', async (req, res) => {
@@ -240,6 +244,21 @@ app.post('/Nricetta', async (req, res) => {
 		res.status(500).json({"results": "none"});
 	}
 });
+
+app.post('/NricettaJSN', async (req, res) => {
+	try {
+		const nome = req.body.Name || 'noName';
+		const ingredienti = req.body.Ingredienti || 'noIngred';
+		const temperatura = req.body.Temperatura;
+		const orario = req.body.Orario;
+		console.log("aspetto " + nome);
+		await db.insertRicetta(nome, ingredienti, temperatura, orario);
+		res.status(200);
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+});
+
 
 app.post('/NomeIngr', async (req, res) => { 
 	const id = req.body.Id; 
