@@ -52,11 +52,9 @@
 			const rows = document.querySelectorAll("#menuTable tbody tr"); // Selettore tabella modificato
 			rows.forEach(row => {
 				row.addEventListener("click", () => {
-					// Requisito: cliccando la riga si va alla pagina specifica del menu
 					const menuId = row.dataset.id; // Legge l'ID dal 'data-id'
 
 					if (menuId) {
-						//window.location.href = `/menu/${menuId}`; // Naviga alla pagina di quel menu
 						console.log("apro menu: " + menuId);
 						window.location.href = `/piano/${menuId}`;
 					} else {

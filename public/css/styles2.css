@@ -2,3 +2,11 @@
     text-align: center;  
     font-size: 10px 
 }
+
+.cols-red {
+	color: red !important;
+}
+
+.cols-black {
+	color: black !important;
+}

@@ -35,17 +35,17 @@
 		<input type="text" class="form-control" name="Name" id="Name" required>
 	</div>
 	<div class="form-group" id="ingredienti-container">
-	<label>Ingredienti</label>
-	<div class="ingredient-input">
-		<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-		<datalist id="lista-ingredienti"></datalist>
-	</div>
-	<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
-	<input type="hidden" name="Ingredienti" id="Ingredienti">
+		<label>Ingredienti</label>
+		<div class="ingredient-input">
+			<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
+			<datalist id="lista-ingredienti"></datalist>
+		</div>
+		<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
+		<input type="hidden" name="Ingredienti" id="Ingredienti">
 	</div>
 
 
-<div class="row mb-3">
+	<div class="row mb-3">
 		<div class="col-2">
 			<div class="form-check">
 				<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
@@ -74,8 +74,15 @@
 			</div>
 		</div>
 	</div>
-
-	<button id="submitButton" class="btn btn-primary">Aggiungi</button>
+	<div class="row mb-3">
+		<div class="col-2">
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="inProva" id="inProva" required>
+				<label class="form-check-label" for="inProva">In Prova</label>
+			</div>
+		</div>
+	</div>
+		<button id="submitButton" class="btn btn-primary">Aggiungi</button>
 </form>
 <script>
 	document.addEventListener("DOMContentLoaded", (event) => {
@@ -140,104 +147,64 @@ function updateHiddenInput() {
 }
 
 
-	function loadTableListeners() {
-		const rows = document.querySelectorAll("#legendTable tbody tr"); 
-		rows.forEach(row => {
-			row.addEventListener("click", async () => {
-				const recipeName = row.cells[0].textContent.trim();
-				const jsonRecipeName = { 'Name': recipeName };
-				//console.log("clicco: "+recipeName);
-				try {
-					const fetchConfigData = {
-						method: "POST",
-						body: JSON.stringify(jsonRecipeName),
-						headers: {
-							"Content-Type": "application/json"
-						}
-					};
-
-					const response = await fetch("/DELETERicetta", fetchConfigData);
-					if(response.ok) {
-						const recipes = await response.json();
-						loadTableWithRecipes((recipes)); 
-					} else {
-						console.log("Error with the response data");
-					}
-				} catch (err) {
-					console.log(`Error: ${err}`);
-				}
-			});
-		});
-	}
-
-
-	//dwnJSON
-	document.getElementById("dwnJSON").addEventListener("click", async (e) => {
-		e.preventDefault();
-
-		try {
-			const recipeData = {
-				Name: 'pino',
-			};
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(recipeData),
-				headers: { "Content-Type": "application/json" }
-			};
-			const response = await fetch("/ricet", fetchConfigData);
-			if (!response.ok) {
-				throw new Error(`Errore server: ${response.status}`);
+function loadTableListeners() {
+	const rows = document.querySelectorAll("#legendTable tbody tr");
+	rows.forEach(row => {
+		row.addEventListener("click", () => {
+			const ricettaId = row.dataset.id; 
+			console.log("clicco: " + row.dataset.id);
+			if (ricettaId) {
+				//window.location.href = `/menu/${ricettaId}`; // Naviga alla pagina di quel menu
+				console.log("apro ricetta: " + ricettaId);
+				window.location.href = `/ricetta/${ricettaId}`;
+			} else {
+				console.error("ID ricetta non trovato sulla riga.");
 			}
-			const data = await response.json();
-			const jsonString = JSON.stringify(data, null, 2);
-			const blob = new Blob([jsonString], { type: "application/json" });
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement('a');
-			link.href = url;
-			const date = new Date().toISOString().split('T')[0];
-			link.download = `ricette_backup_${date}.json`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
-
-		} catch (err) {
-			console.error("Errore durante il download:", err);
-			alert("Impossibile scaricare il file JSON: " + err.message);
-		}
+		});
 	});
+}
+
+
+//dwnJSON
+document.getElementById("dwnJSON").addEventListener("click", async (e) => {
+	e.preventDefault();
+
+	try {
+		const recipeData = {
+			Name: 'pino',
+		};
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(recipeData),
+			headers: { "Content-Type": "application/json" }
+		};
+		const response = await fetch("/ricet", fetchConfigData);
+		if (!response.ok) {
+			throw new Error(`Errore server: ${response.status}`);
+		}
+		const data = await response.json();
+		const jsonString = JSON.stringify(data, null, 2);
+		const blob = new Blob([jsonString], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		const date = new Date().toISOString().split('T')[0];
+		link.download = `ricette_backup_${date}.json`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+
+	} catch (err) {
+		console.error("Errore durante il download:", err);
+		alert("Impossibile scaricare il file JSON: " + err.message);
+	}
+});
 
 
 // loadJSON
-	document.getElementById("loadJSON").addEventListener("click", (e) => {
-		e.preventDefault();
 
-		const input = document.createElement('input');
-		input.type = 'file';
-		input.accept = '.json';
-
-		input.onchange = async (event) => {
-			const fileCaricato = event.target.files[0];
-			if (!fileCaricato) return;
-
-			try {
-				const text = await fileCaricato.text();
-				const file = JSON.parse(text);
-
-				await caricaJSON(file);
-
-				location.reload();
-
-			} catch (err) {
-				console.error("Errore:", err);
-				alert("Errore nel file JSON: " + err.message);
-			}
-		};
-
-		input.click();
-	});
-
-	async function caricaJSON(file) {
+async function caricaJSON(file) {
 		if (!Array.isArray(file)) {
 			file = [file];
 		}
@@ -332,13 +299,15 @@ document.getElementById("submitButton").addEventListener("click", async (e) => {
 		const Orario1 = document.getElementById("Orario1").checked;
 		const Orario2 = document.getElementById("Orario2").checked;
 		const Orario = (Orario1?1:0)+(Orario2?2:0);
-		const Temperatura = (Temperatura1?1:0)+(Temperatura2?2:0);
+		const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
+		const prova = document.getElementById("inProva").checked;
 		console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
 		const recipeData = {
 			Name: Name,
 			Ingredienti: ingredienti,
 			Temperatura: Temperatura,
-			Orario: Orario
+			Orario: Orario,
+			Prova: prova
 		};
 		console.log(JSON.stringify(recipeData));
 
@@ -364,105 +333,106 @@ document.getElementById("submitButton").addEventListener("click", async (e) => {
 
 
 
-	async function caricaTavola(){
-		try {
-			const recipeData = {
-				Name: 'pino',
+async function caricaTavola(){
+	try {
+		const recipeData = {
+			Name: 'pino',
+		};
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(recipeData),
+			headers: { "Content-Type": "application/json" }
+		};
+		const response = await fetch("/ricet", fetchConfigData);
+		if(response.ok) {
+			const recipes = await response.json();
+			loadTableWithRecipes((recipes)); 
+		} else {
+			console.log("Error with the response data");
+		}
+	} catch (err) {
+		console.log(`Error: ${err}`);
+	}
+}
+
+async function loadTableWithRecipes(recipes) {
+	const tableBody = document.querySelector("#legendTable tbody");
+	tableBody.innerHTML = ""; // Clear the table
+
+	for (const ricetta of recipes) {
+		const tr = document.createElement("tr");
+		tr.dataset.id = ricetta._id;
+		tr.style.cursor = "pointer";
+
+		tr.classList.remove("cols-red", "cols-black");
+		tr.classList.add(ricetta.Prova ? "cols-red" : "cols-black");
+
+
+		const nameTd = document.createElement("td");
+		nameTd.textContent = ricetta.Name;
+
+		const ingredienteTd = document.createElement("td"); 
+		const ingredientNames = await getIngNames(ricetta.Ingredienti);
+		ingredienteTd.textContent = ingredientNames.join(", "); 
+
+		const temperaturaTd = document.createElement("td");
+		switch (ricetta.Temperatura) {
+			case 1:
+				temperaturaTd.textContent = 'Estate';
+				break;
+			case 2:
+				temperaturaTd.textContent = 'Inverno';
+				break;
+			default:
+				temperaturaTd.textContent = 'OgniStagione';
+		}
+		const orarioTd = document.createElement("td");
+		switch (ricetta.Orario) {
+			case 1:
+				orarioTd.textContent = 'Pranzo';
+				break;
+			case 2:
+				orarioTd.textContent = 'Cena';
+				break;
+			default:
+				orarioTd.textContent = 'OgniOra';
+		}
+
+		tr.appendChild(nameTd);
+		tr.appendChild(ingredienteTd);
+		tr.appendChild(temperaturaTd);
+		tr.appendChild(orarioTd);
+			
+		tableBody.appendChild(tr);
+	}
+
+	loadTableListeners();
+	document.getElementById("newRecipeForm").reset();
+}
+
+async function getIngNames(ingredientIds) {
+	let ingredArray=[];
+	for (let i=0; i<ingredientIds.length;i++){
+		const ingData = {
+				Id: ingredientIds[i],
 			};
-			const fetchConfigData = {
+		const fetchConfigData = {
 				method: "POST",
-				body: JSON.stringify(recipeData),
+				body: JSON.stringify(ingData),
 				headers: { "Content-Type": "application/json" }
 			};
-			const response = await fetch("/ricet", fetchConfigData);
-			if(response.ok) {
-				const recipes = await response.json();
-				loadTableWithRecipes((recipes)); 
-			} else {
-				console.log("Error with the response data");
+		const response = await fetch("/NomeIngr", fetchConfigData);
+		if (response.ok) {
+			const ingrediente = await response.json();
+			let nm = 'noName';
+			if (ingrediente!=null){
+				ingredArray.push(ingrediente.Name);
 			}
-		} catch (err) {
-			console.log(`Error: ${err}`);
-		}
-	}
-
-	async function loadTableWithRecipes(recipes) {
-		const tableBody = document.querySelector("#legendTable tbody");
-		tableBody.innerHTML = ""; // Clear the table
-
-		for (const ricetta of recipes) {
-			const tr = document.createElement("tr");
-
-			const nameTd = document.createElement("td");
-			nameTd.textContent = ricetta.Name;
-
-			const ingredienteTd = document.createElement("td"); 
-			const ingredientNames = await getIngNames(ricetta.Ingredienti);
-		//console.log("elenco?? "+ingredientNames);
-			ingredienteTd.textContent = ingredientNames.join(", "); 
-
-			const temperaturaTd = document.createElement("td");
-			switch (ricetta.Temperatura) {
-				case 1:
-					temperaturaTd.textContent = 'Estate';
-					break;
-				case 2:
-					temperaturaTd.textContent = 'Inverno';
-					break;
-				default:
-					temperaturaTd.textContent = 'OgniStagione';
-			}
-			const orarioTd = document.createElement("td");
-			switch (ricetta.Orario) {
-				case 1:
-					orarioTd.textContent = 'Pranzo';
-					break;
-				case 2:
-					orarioTd.textContent = 'Cena';
-					break;
-				default:
-					orarioTd.textContent = 'OgniOra';
-			}
-
-			tr.appendChild(nameTd);
-			tr.appendChild(ingredienteTd);
-			tr.appendChild(temperaturaTd);
-			tr.appendChild(orarioTd);
-			
-			tableBody.appendChild(tr);
-		}
-
-		loadTableListeners();
-		document.getElementById("newRecipeForm").reset();
-	}
-
-	async function getIngNames(ingredientIds) {
-		let ingredArray=[];
-	//console.log("Elenco id: "+ingredientIds);
-		for (let i=0; i<ingredientIds.length;i++){
-			const ingData = {
-					Id: ingredientIds[i],
-				};
-	//console.log('HandeB cerco ID:', ingData.Id);
-			const fetchConfigData = {
-					method: "POST",
-					body: JSON.stringify(ingData),
-					headers: { "Content-Type": "application/json" }
-				};
-			const response = await fetch("/NomeIngr", fetchConfigData);
-			if (response.ok) {
-				const ingrediente = await response.json();
-	//console.log("Trovato: "+ingrediente.Name);
-				let nm = 'noName';
-				if (ingrediente!=null){
-					ingredArray.push(ingrediente.Name);
-	//console.log("Array dim "+ingredArray);
-				}
-			} else {
+		} else {
 console.log("Error with the response data");
-			}
 		}
-		return ingredArray;
 	}
+	return ingredArray;
+}
 
 </script>

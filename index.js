@@ -54,6 +54,17 @@ app.get('/piano/:id', async (req, res) => {
 	}
 });
 
+app.get('/ricetta/:id', async (req, res) => {
+	try {
+		const _id = req.params.id;
+		console.log("questo e lid " + _id);
+		const ricetta = await db.getRicettaID(_id);
+		res.render('ricetta', { menu: ricetta });
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
+
 app.get('/ingredienti', async (req, res) => { 
 	try {
 	const ingredienti = await db.getAllIngredienti();
@@ -237,13 +248,31 @@ app.post('/Nricetta', async (req, res) => {
 		const ingredienti = req.body.Ingredienti || 'noIngred'; 
 		const temperatura = req.body.Temperatura; 
 		const orario = req.body.Orario;
-		await db.insertRicetta(nome, ingredienti, temperatura, orario); 
+		const prova = req.body.Prova;
+		await db.insertRicetta(nome, ingredienti, temperatura, orario, prova);
 		const allRic = await db.getAllRicette();
 		res.json(allRic); 
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
 });
+
+app.post('/MODricetta', async (req, res) => {
+	try {
+		const id = req.body.Id;
+		const nome = req.body.Name || 'noName'; 
+		const ingredienti = req.body.Ingredienti || 'noIngred'; 
+		const temperatura = req.body.Temperatura; 
+		const orario = req.body.Orario;
+		const prova = req.body.Prova;
+		const RicRic = await db.modificaRicetta(id, nome, ingredienti, temperatura, orario, prova);
+		res.json(RicRic);
+	} catch (err) {
+		res.status(500).json({"results": "none"});
+	}
+});
+
+
 
 app.post('/NricettaJSN', async (req, res) => {
 	try {
@@ -266,6 +295,13 @@ app.post('/NomeIngr', async (req, res) => {
 	res.json(ingred);
 });
 
+app.post('/NomeRic', async (req, res) => {
+	const id = req.body.Id;
+	const ricet = await db.getRicettaID(id);
+	console.log("carico: " + ricet);
+	res.json(ricet);
+});
+
 
 app.post('/DELETETUTTOric', async (req, res) => { 
 	try {
@@ -286,7 +322,12 @@ app.post('/DELETETUTTOmen', async (req, res) => {
 	}
 });
 
-
+app.post('/DELETEingFROMrec', async (req, res) => {
+	const Name = req.body.Name;
+	const Id = req.body.Id;
+	const ric = await db.removeIngRecepit(Name, Id);
+	res.json(ric);
+});
 
 
 
