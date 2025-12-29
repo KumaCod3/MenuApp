@@ -1,10 +1,27 @@
 <a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
-<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTI I MENU</button>
+<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTI I MENU</BUTTON>
 <h2 class="display-4">I Menu</h2>
-<div id="menusContainer">
+<table id="menuTable" class="table table-bordered table-hover">
+	<thead>
+		<th>Titolo</th>
+		<th>Stagione</th>
+	</thead>
+	<tbody>
+		{{#each menu}}
+		<tr>
+			<!--	<tr data-id="{{this/id}}" style="cursor: pointer;"> -->
+			<td>
+				{{this/Name}}
+			</td>
+			<td>
+				{{this/Temperatura}}
+			</td>
+		</tr>
+		{{/each}}
+	</tbody>
+</table>
 
-</div>
 <h3 class="display-5">Crea nuovo menu:</h3>
 <form id="newMenuForm">
 	<div class="form-group">
@@ -55,7 +72,7 @@
 		e.preventDefault();
 
 		try {
-			const recipeData = {
+		const recipeData = {
 				Name: "ciao",
 			};
 			const fetchConfigData = {
@@ -118,11 +135,11 @@
 			const Temperatura1 = document.getElementById("Temperatura1").checked;
 			const Temperatura2 = document.getElementById("Temperatura2").checked;
 			const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
-			console.log("titolo: " + titolo + " t1= " + Temperatura1 + " T2: " + Temperatura2 + " Tot: " + Temperatura);
+			console.log("titolo: "+titolo+" t1= " + Temperatura1 + " T2: " + Temperatura2 + " Tot: " + Temperatura);
 
 			const menuData = {
 				Name: titolo,
-				Temperatura: Temperatura
+				Temperatura: Temperatura 
 			};
 
 			const fetchConfigData = {
@@ -136,7 +153,7 @@
 			// Endpoint modificato per creare un NUOVO MENU
 			const response = await fetch("/Nmenu", fetchConfigData);
 
-			if (response.ok) {
+			if(response.ok) {
 				const menus = await response.json(); // Si aspetta la lista aggiornata dei menu
 				loadTableWithMenus(menus); // Ricarica la tabella con i nuovi dati
 			} else {
@@ -148,64 +165,34 @@
 	});
 
 	function loadTableWithMenus(menus) {
-		const container = document.getElementById("menusContainer");
-		container.innerHTML = "";
+		const table = document.getElementById("menuTable");
+		const tableBody = table.children[1];
+		tableBody.innerHTML = "";
 
-		menus.forEach(menu => {
-			// 1. Determina il testo della stagione
-			let stagioneText = "";
+		for (const menu of menus) {
+			const tr = document.createElement("tr");
+			tr.dataset.id = menu._id;
+			tr.style.cursor = "pointer";
+
+			const titoloTd = document.createElement("td");
+			titoloTd.innerHTML = menu.Name; 
+			const temperaturaTd = document.createElement("td");
 			switch (menu.Temperatura) {
-				case 1: stagioneText = 'Estate'; break;
-				case 2: stagioneText = 'Inverno'; break;
-				default: stagioneText = 'Ogni Stagione';
+				case 1:
+					temperaturaTd.textContent = 'Estate';
+					break;
+				case 2:
+					temperaturaTd.textContent = 'Inverno';
+					break;
+				default:
+					temperaturaTd.textContent = 'OgniStagione';
 			}
+			tr.appendChild(titoloTd);
+			tr.appendChild(temperaturaTd);
+			tableBody.appendChild(tr);
+		}
 
-			// 2. Crea il titolo del Menu
-			const sectionTitle = document.createElement("h3");
-			sectionTitle.className = "mt-4 mb-2";
-			sectionTitle.innerHTML = `Menu: <strong>${menu.Name}</strong> <span class="badge badge-secondary" style="background-color: #6c757d; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; margin-left: 10px;">${stagioneText}</span>`;
-			container.appendChild(sectionTitle);
-
-			// 3. Crea la Tabella
-			const table = document.createElement("table");
-			table.className = "table table-bordered table-hover mb-5";
-			table.innerHTML = `
-				<thead class="table-primary">
-					<tr>
-						<th style="width: 30%">Settimana</th>
-						<th>Contenuto / Note</th>
-					</tr>
-				</thead>
-				<tbody></tbody>
-			`;
-
-			const tbody = table.querySelector("tbody");
-			// 4. Popola le 4 settimane
-			for (let i = 0; i < menu.Settimane.length; i++) {
-				const tr = document.createElement("tr");
-				tr.style.cursor = "pointer";
-
-				// verifico se nella settimana sono presenti dati
-				const infoSettimana = menu.Settimane[i].Giorni[0].length > 0 ? "Menu presente" : "Menu Vuoto";
-
-				tr.innerHTML = `
-                <td><strong>${menu.Settimane[i].Name}</strong></td>
-                <td class="text-muted">${infoSettimana}</td>
-            `;
-
-				// Click sulla riga per andare alcontenuto della settimana
-				tr.onclick = () => {
-					console.log("Apro menu: " + menu.Settimane[i]._id);
-					window.location.href = `/piano/${menu.Settimane[i]._id}`;
-				};
-
-				tbody.appendChild(tr);
-			}
-
-			container.appendChild(table);
-		});
-
-		// Reset del form dopo il caricamento
+		loadTableListeners();
 		document.getElementById("newMenuForm").reset();
 	}
-</script>
+	</script>

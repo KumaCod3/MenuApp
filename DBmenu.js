@@ -9,11 +9,11 @@ const Ingrediente = mongoose.model('Ingrediente', ingredientiSchema);
 const ricettaSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
 	Ingredienti: [{ type: mongoose.Types.ObjectId, ref: 'Ingrediente' }],
-	Temperatura: { type: Number, required: true},
+	Temperatura: { type: Number, required: true },
 	Orario: { type: Number, required: true },
 	Note: { type: String, required: false },
 	Menus: [{ type: mongoose.Types.ObjectId, ref: 'Menu' }],
-	Prova: { type: Boolean, required: true, default:false }
+	Prova: { type: Boolean, required: true, default: false }
 });
 const Ricetta = mongoose.model('Ricetta', ricettaSchema);
 
@@ -24,7 +24,7 @@ const settimanaSchema = new mongoose.Schema({
 		Nome: { type: String },
 		Pranzo: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Ricetta' 
+			ref: 'Ricetta'
 		},
 		Cena: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -40,7 +40,7 @@ const menuSchema = new mongoose.Schema({
 	Temperatura: { type: Number, required: true },
 	Settimane: [{ type: mongoose.Types.ObjectId, ref: 'Settimana' }]
 })
-const menu = mongoose.model('Menu', menuSchema);
+const Menu = mongoose.model('Menu', menuSchema);
 
 
 class DBmenu {
@@ -59,20 +59,20 @@ class DBmenu {
 			throw err;
 		}
 	}
-	
+
 	async getAllMenu() {
 		let menus = [];
 		try {
-			menus = await Settimana.find()
-				.populate('Giorni.Pranzo')
-				.populate('Giorni.Cena')
+			menus = await Menu.find()
+				.populate('Settimane')
 				.lean(); // forse da togliere
 		} catch (err) {
-			console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
+			console.error('C\'è stato un problema con l\'estrazione delle settimane:', err);
 			throw err;
 		}
 		return menus;
 	}
+
 	async getAllRicette() {
 		let ricette = [];
 		try {
@@ -83,7 +83,7 @@ class DBmenu {
 		}
 		return ricette;
 	}
-	
+
 	async getAllRicetteJN() {
 		let ricette = [];
 		try {
@@ -94,7 +94,7 @@ class DBmenu {
 		}
 		return ricette;
 	}
-	
+
 	async getAllIngredienti() {
 		let ingredienti = [];
 		try {
@@ -105,11 +105,11 @@ class DBmenu {
 		}
 		return ingredienti;
 	}
-	
+
 	async removeSingleIngredient(name) {
-		let updatedItem =null;
+		let updatedItem = null;
 		try {
-			let item = await Ingrediente.findOneAndDelete({ 'Name':name });
+			let item = await Ingrediente.findOneAndDelete({ 'Name': name });
 			if (item == null) {
 				return null;
 			}
@@ -118,14 +118,13 @@ class DBmenu {
 		}
 		return;
 	}
-	
+
 	async removeSingleRecepit(name) {
-		let updatedItem =null;
-		console.log("Rimuovo: "+name);
+		let updatedItem = null;
+		console.log("Rimuovo: " + name);
 		try {
-			let item = await Ricetta.findOneAndDelete({ 'Name':name });
+			let item = await Ricetta.findOneAndDelete({ 'Name': name });
 			if (item == null) {
-/////				await Ricetta.deleteMany({}); // per droppare tutte ricette!!!!
 				return null;
 			}
 		} catch (err) {
@@ -135,7 +134,7 @@ class DBmenu {
 		return;
 	}
 
-	async RimuoviTuttoRic(){
+	async RimuoviTuttoRic() {
 		try {
 			await Ricetta.deleteMany({}); // per droppare tutte ricette!!!!
 			return null;
@@ -144,16 +143,17 @@ class DBmenu {
 			throw err;
 		}
 	}
-	async RimuoviTuttoMen(){
+	async RimuoviTuttoMen() {
 		try {
 			await Settimana.deleteMany({}); // per droppare tutte ricette!!!!
+			await Menu.deleteMany({}); // per droppare tutte ricette!!!!
 			return null;
 		} catch (err) {
 			console.error(err);
 			throw err;
 		}
 	}
-	
+
 	async getAllIngredientiJN() {
 		let ingredienti = [];
 		try {
@@ -164,13 +164,13 @@ class DBmenu {
 		}
 		return ingredienti;
 	}
-	
+
 	async insertRicetta(nome, ingred, temperatura, orario, prova) {
-		let ingredArray=[];
-		for (let i=0; i<ingred.length;i++){
-			const nomeGiro=ingred[i];
-			let ingredienti= nomeGiro.length>0?nomeGiro:"noIng";
-			
+		let ingredArray = [];
+		for (let i = 0; i < ingred.length; i++) {
+			const nomeGiro = ingred[i];
+			let ingredienti = nomeGiro.length > 0 ? nomeGiro : "noIng";
+
 			let ingrediente = null;
 			try {
 				ingrediente = await Ingrediente.findById(ingredienti);
@@ -182,14 +182,14 @@ class DBmenu {
 					throw err;
 				}
 			}
-			if (ingrediente == null){
+			if (ingrediente == null) {
 				try {
 					let newIngrediente = new Ingrediente({
 						Name: ingredienti,
 						Price: 0
 					});
 					await newIngrediente.save();
-					ingrediente=newIngrediente;
+					ingrediente = newIngrediente;
 
 				} catch (err) {
 					console.error('C\'è stato un problema con l\'inserimento delingrediente:', err);
@@ -213,11 +213,11 @@ class DBmenu {
 	}
 
 	async modificaRicetta(id, nome, ingred, temperatura, orario, prova) {
-		let ingredArray=[];
-		for (let i=0; i<ingred.length;i++){
-			const nomeGiro=ingred[i];
-			let ingredienti= nomeGiro.length>0?nomeGiro:"noIng";
-			
+		let ingredArray = [];
+		for (let i = 0; i < ingred.length; i++) {
+			const nomeGiro = ingred[i];
+			let ingredienti = nomeGiro.length > 0 ? nomeGiro : "noIng";
+
 			let ingrediente = null;
 			try {
 				ingrediente = await Ingrediente.findById(ingredienti);
@@ -229,14 +229,14 @@ class DBmenu {
 					throw err;
 				}
 			}
-			if (ingrediente == null){
+			if (ingrediente == null) {
 				try {
 					let newIngrediente = new Ingrediente({
 						Name: ingredienti,
 						Price: 0
 					});
 					await newIngrediente.save();
-					ingrediente=newIngrediente;
+					ingrediente = newIngrediente;
 
 				} catch (err) {
 					console.error('C\'è stato un problema con l\'inserimento delingrediente:', err);
@@ -259,7 +259,7 @@ class DBmenu {
 			);
 
 			if (!updatedRicetta) {
-				console.error("Ricetta non trovata "+id);
+				console.error("Ricetta non trovata " + id);
 			} else {
 				console.log("Ricetta aggiornata:", updatedRicetta);
 				return updatedRicetta;
@@ -269,13 +269,13 @@ class DBmenu {
 		}
 	}
 
-	async insertMenu(nome, temperatura, giorni) {
+	async insertMenu(nome, temperatura) {
 		let newMenu = null;
 		try {
-			newMenu = new Settimana({
+			newMenu = new Menu({
 				Name: nome,
 				Temperatura: temperatura,
-				Giorni: giorni
+				Settimane: []
 			});
 			await newMenu.save();
 
@@ -283,9 +283,49 @@ class DBmenu {
 			console.error('C\'è stato un problema con l\'inserimento del menu :', err);
 			throw err;
 		}
+		await this.popolaMenu(newMenu);
 		return newMenu;
 	}
-	
+
+	async popolaMenu(newMenu) {
+		const menID = newMenu._id;
+
+		// Lista dei nomi per popolare il campo 'Nome'
+		const nomiSettimana = [
+			'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì',
+			'Venerdì', 'Sabato', 'Domenica'
+		];
+
+		for (let i = 0; i < 4; i++) {
+			const n = i + 1;
+
+			// Creiamo l'array di oggetti seguendo esattamente il tuo schema
+			const giorniDaInserire = nomiSettimana.map(giorno => ({
+				Nome: giorno,
+				Pranzo: null, // Riferimento ObjectId vuoto
+				Cena: null    // Riferimento ObjectId vuoto
+			}));
+
+			try {
+				const newSett = new Settimana({
+					Name: `Settimana ${n}`,
+					Temperatura: newMenu.Temperatura,
+					Giorni: giorniDaInserire, // Inserimento dell'array strutturato
+					Menu: menID
+				});
+
+				await newSett.save();
+				newMenu.Settimane.push(newSett);
+			} catch (err) {
+				console.error(`Errore durante il salvataggio della Settimana ${n}:`, err);
+				throw err;
+			}
+		}
+
+		// Salviamo il menu con i riferimenti alle 4 settimane create
+		await newMenu.save();
+	}
+
 	async insertIngrediente(nome, prezzo) {
 		let newIngrediente = null;
 		try {
@@ -301,43 +341,44 @@ class DBmenu {
 		}
 		return newIngrediente;
 	}
-	
+
 	async getRicetteTemp(temp) {
 		let ricette = [];
-		if(!Number.isInteger(temp)) { 
-			return ricette; 
-		} 
- 
-		try { 
+		if (!Number.isInteger(temp)) {
+			return ricette;
+		}
+
+		try {
 			ricette = await Ricetta.find({
 				$or: [
-					{ Temperatura : temp },
+					{ Temperatura: temp },
 					{ Temperatura: 3 },
 					{ Temperatura: 0 }
-				] });
-		} catch (err) { 
-			console.error('There was a problem finding the ricette'+err);
-			throw err; 
-		} 
-		return ricette; 
+				]
+			});
+		} catch (err) {
+			console.error('There was a problem finding the ricette' + err);
+			throw err;
+		}
+		return ricette;
 	}
-	
+
 	async getRicetteOra(ora) {
 		let ricette = [];
-		if(!Number.isInteger(temp)) { 
-			return ricette; 
-		} 
- 
-		try { 
-			ricette = await Ricetta.find({Orario: ora}); 
-console.log("array: "+ricette.length);
-		} catch (err) { 
-			console.error('There was a problem finding the ricette'+err);
-			throw err; 
-		} 
-		return ricette; 
+		if (!Number.isInteger(temp)) {
+			return ricette;
+		}
+
+		try {
+			ricette = await Ricetta.find({ Orario: ora });
+			console.log("array: " + ricette.length);
+		} catch (err) {
+			console.error('There was a problem finding the ricette' + err);
+			throw err;
+		}
+		return ricette;
 	}
-	
+
 	async getRicetta(nome) {
 		let ricetta = null;
 		try {
@@ -348,7 +389,7 @@ console.log("array: "+ricette.length);
 		}
 		return ricetta;
 	}
-	
+
 	async removeIngRecepit(nome, id) {
 		try {
 			console.log("Cerco ricetta:" + nome + " con ID ingrediente:" + id);
@@ -373,7 +414,6 @@ console.log("array: "+ricette.length);
 		}
 	}
 
-	
 	async getRicettaID(_id) {
 		let ricetta = null;
 		try {
@@ -384,10 +424,10 @@ console.log("array: "+ricette.length);
 		}
 		return ricetta;
 	}
-	
+
 	async getIngrediente(nome) {
 		let ingrediente = null;
-console.log("Almeno ci provo UN POCHINO???");
+		console.log("Almeno ci provo UN POCHINO???");
 		try {
 			ingrediente = await Ingrediente.findOne({ Name: nome });
 			console.log('ingrediente trovata per nome:', nome);
@@ -397,7 +437,7 @@ console.log("Almeno ci provo UN POCHINO???");
 		}
 		return ingrediente;
 	}
-	
+
 	async getIngredienteID(_id) {
 		let ingrediente = null;
 		try {
@@ -412,15 +452,41 @@ console.log("Almeno ci provo UN POCHINO???");
 	async getMenuID(_id) {
 		let menu = null;
 		try {
-			menu = await Settimana.findById(_id)
-				.populate('Giorni.Pranzo')
-				.populate('Giorni.Cena');
-			console.log('Settimana trovata per ID:', menu);
+			menu = await Menu.findById(_id)
+				.populate('Settimane')
+			console.log('Menu trovata per ID:', menu);
 		} catch (err) {
 			console.error('C\'è stato un problema nel trovare il menu:', err);
 			throw err;
 		}
 		return menu;
+	}
+
+	async getSettID(_id) {
+		let settim = null;
+		try {
+			settim = await Settimana.findById(_id)
+				.populate('Giorni.Pranzo')
+				.populate('Giorni.Cena');
+			console.log('Settimana trovata per ID:', settim);
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare la settimana:', err);
+			throw err;
+		}
+		return settim;
+	}
+
+	async getSettByMenID(_id, nSett) {
+		let menu = null;
+		try {
+			menu = await Menu.findById(_id)
+				.populate('Settimane')
+			console.log('Menu trovata per ID:', menu);
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare il menu:', err);
+			throw err;
+		}
+		return await getSettID(menu.Settimane[nSett]);
 	}
 
 	async close() {

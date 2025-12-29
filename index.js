@@ -47,7 +47,7 @@ app.get('/piano/:id', async (req, res) => {
 		const _id = req.params.id;
 		console.log("questo e lid "+_id);
 
-		const menus = await db.getMenuID(_id);
+		const menus = await db.getSettID(_id);
 		res.render('piano', { menu: menus });
 	} catch (err) {
 		res.status(500).json({ message: err.message });
@@ -129,7 +129,7 @@ app.post('/men', async (req, res) => {
 app.post('/pian', async (req, res) => {
 	try {
 		const menuId = req.body._id;
-		const menuTrovato = await db.getMenuID(menuId);
+		const menuTrovato = await db.getSettID(menuId);
 		if (menuTrovato) {
 			res.json(menuTrovato);
 		} else {
@@ -145,94 +145,9 @@ app.post('/Nmenu', async (req, res) => {
 	try {
 		const nome = req.body.Name || 'Menu Generato';
 		const temperaturaScelta = req.body.Temperatura;
-
-		const candidati = await db.getRicetteTemp(temperaturaScelta);
-
-		const giorniSettimana = [
-			"Luned&igrave;", "Marted&igrave;", "Mercoled&igrave;",
-			"Gioved&igrave;", "Venerd&igrave;", "Sabato", "Domenica"
-		];
-
-		const giorniGenerati = [];
-		const idRicetteUsate = new Set();
-
-		const ingredientiLastSeen = new Map();
-
-		// Funzione helper per estrarre gli ID degli ingredienti come stringhe
-		const getIngIds = (ricetta) => {
-			if (!ricetta.Ingredienti) return [];
-			return ricetta.Ingredienti.map(ing =>
-				(ing._id ? ing._id.toString() : ing.toString())
-			);
-		};
-
-		// Funzione per calcolare distanza di una ricetta
-		const calcolaPunteggio = (ricetta, giornoIndex) => {
-			const ingIds = getIngIds(ricetta);
-			let distanzaMinima = 1000; // Valore alto di default
-
-			for (let ingId of ingIds) {
-				if (ingredientiLastSeen.has(ingId)) {
-					const ultimoGiornoVisto = ingredientiLastSeen.get(ingId);
-					const distanza = giornoIndex - ultimoGiornoVisto;
-					if (distanza < distanzaMinima) {
-						distanzaMinima = distanza;
-					}
-				}
-			}
-			// casualità per variare se le distanze sono uguali
-			return distanzaMinima + Math.random();
-		};
-		const selezionaRicetta = (orariAmmessi, giornoIndex, ricettaDaEvitare = null) => {
-			// 1. Filtra per Orario e non già usata nel menu
-			let pool = candidati.filter(r =>
-				orariAmmessi.includes(r.Orario) &&
-				!idRicetteUsate.has(r._id.toString())
-			);
-
-			// 2. CONSTRAINT RIGIDO: da evitare ripetizioni stesso giorno
-			if (ricettaDaEvitare) {
-				const ingredientiDaEvitare = new Set(getIngIds(ricettaDaEvitare));
-				pool = pool.filter(r => {
-					const ingredientiR = getIngIds(r);
-					return !ingredientiR.some(ing => ingredientiDaEvitare.has(ing));
-				});
-			}
-
-			if (pool.length === 0) return null;
-
-			// 3. CONSTRAINT SOFT: Ordina per  distanza
-			pool.sort((a, b) => {
-				const scoreA = calcolaPunteggio(a, giornoIndex);
-				const scoreB = calcolaPunteggio(b, giornoIndex);
-				return scoreB - scoreA;
-			});
-			const scelta = pool[0];
-
-			// 4. Aggiorna mappa
-			idRicetteUsate.add(scelta._id.toString());
-			const ingIds = getIngIds(scelta);
-			ingIds.forEach(id => ingredientiLastSeen.set(id, giornoIndex));
-
-			return scelta;
-		};
-
-		// --- CICLO GENERAZIONE ---
-		for (let i = 0; i < giorniSettimana.length; i++) {
-			const giorno = giorniSettimana[i];
-			const ricettaPranzo = selezionaRicetta([1, 3], i, null);
-			const ricettaCena = selezionaRicetta([2, 3], i, ricettaPranzo);
-
-			if (ricettaPranzo || ricettaCena) {
-				giorniGenerati.push({
-					Nome: giorno,
-					Pranzo: ricettaPranzo ? ricettaPranzo._id : null,
-					Cena: ricettaCena ? ricettaCena._id : null
-				});
-			}
-		}
-		await db.insertMenu(nome, temperaturaScelta, giorniGenerati);
-
+		console.log("Prova ad inserire: " + nome);
+		await db.insertMenu(nome, temperaturaScelta);
+		console.log("ci riesco: " + nome);
 		const allMen = await db.getAllMenu();
 		res.json(allMen);
 
@@ -241,6 +156,7 @@ app.post('/Nmenu', async (req, res) => {
 		res.status(500).json({ "error": "Impossibile creare il menu" });
 	}
 });
+
 
 app.post('/Nricetta', async (req, res) => {
 	try {
@@ -328,17 +244,6 @@ app.post('/DELETEingFROMrec', async (req, res) => {
 	const ric = await db.removeIngRecepit(Name, Id);
 	res.json(ric);
 });
-
-
-
-
-
-
-
-
-
-
-
 
 
 app.use((req, res) => { 

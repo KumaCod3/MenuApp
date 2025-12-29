@@ -1,13 +1,15 @@
 <a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
 <a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
-<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica MENU</button>
+<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
 <h2 class="display-4">Ecco il tuo menu</h2>
 <p>
 	<h3 id="intestazione">Name per l'Temperatura</h3>
 </p>
 
 <div id="contenitoreMenu">
+</div>
+<div id="contenitoreLista">
 </div>
 
 
@@ -18,6 +20,7 @@
 		const id = segments.pop();
 		caricaTavola(id);
 	});
+	var titolo = "";
 	var name = "";
 	var menuu = "";
 
@@ -35,11 +38,13 @@
 			const response = await fetch("/pian", fetchConfigData);
 			if (response.ok) {
 				const mens = await response.json();
+				titolo = mens.Menu;
 				menuu = mens;
 				var div = document.getElementById("intestazione");
-				div.innerHTML = div.innerHTML.replace("Name", mens.Name);
+				div.innerHTML = div.innerHTML.replace("Name", `${titolo} - ${mens.Name} `);
 				var temper = "";
 				name = mens.Name;
+				
 				switch (mens.Temperatura) {
 					case 1:
 						temper = 'Estate';
@@ -65,45 +70,47 @@
 		e.preventDefault();
 
 		try {
+			console.log("giorni: " + menuu);
 			const data = menuu;
-			const decodeHTML = (html) => {
-				const txt = document.createElement("textarea");
-				txt.innerHTML = html;
-				return txt.value;
-			};
-			let textContent = "";
-			if (data.Name) {
-				textContent += `${data.Name}\n\n`;
-			}
+			var lista = [];
+			var listaNomi = [];
 			if (data.Giorni && Array.isArray(data.Giorni)) {
 				data.Giorni.forEach(giorno => {
-					const nomeGiorno = decodeHTML(giorno.Nome || "");
-					textContent += `${nomeGiorno}\n`;
-					textContent += `\tPranzo:\n`;
-					if (giorno.Pranzo && giorno.Pranzo.Name) {
-						textContent += `\t\t${giorno.Pranzo.Name}\n`;
-					} else {
-						textContent += `\t\t-\n`;
+					if (giorno.Pranzo && giorno.Pranzo.Name) { 
+						giorno.Pranzo.Ingredienti.forEach(ingred => {
+							lista.push(ingred);
+						});
 					}
-					textContent += `\tCena:\n`;
 					if (giorno.Cena && giorno.Cena.Name) {
-						textContent += `\t\t${giorno.Cena.Name}\n`;
-					} else {
-						textContent += `\t\t-\n`;
+						giorno.Cena.Ingredienti.forEach(ingred => {
+							lista.push(ingred);
+						});
 					}
-					textContent += `\n`;
 				});
 			}
 
-			const blob = new Blob([textContent], { type: "text/plain" });
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = `${data.Name || 'menu'}.txt`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
+
+
+			for (var i = 0; i < lista.length; i++){
+				const ingred = lista[i];
+				const recipeData = {
+					Id: ingred
+				};
+				const fetchConfigData = {
+					method: "POST",
+					body: JSON.stringify(recipeData),
+					headers: { "Content-Type": "application/json" }
+				};
+				const response = await fetch("/NomeIngr", fetchConfigData);
+				if (response.ok) {
+					const ojIng = await response.json();
+					listaNomi.push(ojIng.Name);
+				}
+			}
+
+			const listaConta = contaRipetizioni(listaNomi);
+			popolaLista(listaConta);
+
 		} catch (err) {
 			console.error("Errore durante il download:", err);
 			alert("Impossibile scaricare il file TXT: " + err.message);
@@ -123,7 +130,7 @@
 			container.innerHTML += getTabellaView(giorno);
 		});
 	}
-
+/*
 	function getTabellaView(dati) {
 		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
 		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
@@ -152,5 +159,98 @@
 		</div>
 	</div>
 	`;
+	}
+*/
+
+	function getTabellaView(dati) {
+		// Estraiamo i nomi e gli ID (assumendo che la proprietà si chiami .Id o .id)
+		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
+		const idPranzo = dati.Pranzo ? dati.Pranzo.Id : null;
+
+		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
+		const idCena = dati.Cena ? dati.Cena.Id : null;
+
+		const nomeGiorno = dati.Nome || 'Giorno';
+
+		// Funzione di utilità interna per generare la cella o il trattino
+		const renderCell = (nome, id, tipo) => {
+			if (!id || nome === '-') return `<td>${nome}</td>`;
+			return `
+            <td onclick="gestisciClick('${id}', '${tipo}')" 
+                style="cursor: pointer; color: #007bff; text-decoration: underline;">
+                ${nome}
+            </td>`;
+		};
+
+		return `
+<div class="card mb-3">
+    <div class="card-header bg-info text-white">
+        <h5 class="my-0">${nomeGiorno}</h5> 
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-bordered mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 50%">Pranzo</th>
+                    <th style="width: 50%">Cena</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    ${renderCell(nomePranzo, idPranzo, 'PRANZO')}
+                    ${renderCell(nomeCena, idCena, 'CENA')}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+`;
+	}
+
+	function gestisciClick(id, tipo) {
+		console.log("Hai cliccato su:", tipo, "con ID:", id);
+
+		// Esempio di logica differenziata
+		if (tipo === 'PRANZO') {
+			alert("Dettagli Pranzo ID: " + id);
+			// Qui potresti chiamare una API o aprire un form
+		} else {
+			alert("Dettagli Cena ID: " + id);
+		}
+	}
+
+
+	 function popolaLista(dati) {
+		const container = document.getElementById("contenitoreLista");
+		container.innerHTML = "";
+		if (dati.length === 0) {
+			container.innerHTML = "<p>Nessun Ingrediente.</p>";
+			return;
+		}
+		 dati.forEach(ingred => {
+			 container.innerHTML += `<p> ${ingred} </p>`;
+		});
+	}
+
+	function contaRipetizioni(arrayIniziale) {
+		const conteggio = {};
+
+		// Conta le ripetizioni
+		arrayIniziale.forEach(str => {
+			conteggio[str] = (conteggio[str] || 0) + 1;
+		});
+
+		const arrayFinale = [];
+
+		// Crea l'array finale
+		for (const [str, count] of Object.entries(conteggio)) {
+			if (count > 1) {
+				arrayFinale.push(`${count} ${str}`);
+			} else {
+				arrayFinale.push(str);
+			}
+		}
+
+		return arrayFinale;
 	}
 </script>
