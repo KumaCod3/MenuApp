@@ -2,6 +2,7 @@
 <a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
 <button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
+<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
 <h2 class="display-4">Ecco il tuo menu</h2>
 <p>
 	<h3 id="intestazione">Name per l'Temperatura</h3>
@@ -14,15 +15,17 @@
 
 
 <script>
+	var id = "";
 	document.addEventListener("DOMContentLoaded", (event) => {
 		const url = window.location.pathname;
 		const segments = url.split('/');
-		const id = segments.pop();
+		id = segments.pop();
 		caricaTavola(id);
 	});
 	var titolo = "";
 	var name = "";
 	var menuu = "";
+	var thisSettiamana = {};
 
 	async function caricaTavola(id) {
 		try {
@@ -44,7 +47,7 @@
 				div.innerHTML = div.innerHTML.replace("Name", `${titolo} - ${mens.Name} `);
 				var temper = "";
 				name = mens.Name;
-				
+				thisSettiamana = mens;
 				switch (mens.Temperatura) {
 					case 1:
 						temper = 'Estate';
@@ -65,6 +68,30 @@
 			console.log(`Error: ${err}`);
 		}
 	}
+
+	// genMENU
+	document.getElementById("genMENU").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			const recipeData = {
+				settimana:thisSettiamana
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/genSett", fetchConfigData);
+			if (response.ok) {
+				caricaTavola(id);
+
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	});
 
 	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
 		e.preventDefault();
@@ -176,33 +203,33 @@
 		const renderCell = (nome, id, tipo) => {
 			if (!id || nome === '-') return `<td>${nome}</td>`;
 			return `
-            <td onclick="gestisciClick('${id}', '${tipo}')" 
-                style="cursor: pointer; color: #007bff; text-decoration: underline;">
-                ${nome}
-            </td>`;
+			<td onclick="gestisciClick('${id}', '${tipo}')" 
+				style="cursor: pointer; color: #007bff; text-decoration: underline;">
+				${nome}
+			</td>`;
 		};
 
 		return `
 <div class="card mb-3">
-    <div class="card-header bg-info text-white">
-        <h5 class="my-0">${nomeGiorno}</h5> 
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-bordered mb-0">
-            <thead>
-                <tr>
-                    <th style="width: 50%">Pranzo</th>
-                    <th style="width: 50%">Cena</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    ${renderCell(nomePranzo, idPranzo, 'PRANZO')}
-                    ${renderCell(nomeCena, idCena, 'CENA')}
-                </tr>
-            </tbody>
-        </table>
-    </div>
+	<div class="card-header bg-info text-white">
+		<h5 class="my-0">${nomeGiorno}</h5> 
+	</div>
+	<div class="card-body p-0">
+		<table class="table table-bordered mb-0">
+			<thead>
+				<tr>
+					<th style="width: 50%">Pranzo</th>
+					<th style="width: 50%">Cena</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					${renderCell(nomePranzo, idPranzo, 'PRANZO')}
+					${renderCell(nomeCena, idCena, 'CENA')}
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </div>
 `;
 	}

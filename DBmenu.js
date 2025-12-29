@@ -326,6 +326,126 @@ class DBmenu {
 		await newMenu.save();
 	}
 
+	async resettaRicette() {
+		await Ricetta.updateMany({}, { $pull: { Menus: settimana.Menu } });
+	}
+
+	async generaSettimana(settimana) {
+		try {
+			const temperaturaScelta = settimana.Temperatura;
+			const menuId = settimana.Menu;
+
+			// 1. Recupera TUTTE le ricette candidate per questa temperatura
+			// che non sono ancora state associate a questo Menu
+			let candidati = {};
+
+			try {
+				candidati = await Ricetta.find({
+					// La temperatura deve essere una tra quelle nell'array
+					Temperatura: { $in: [temperaturaScelta, 3, 0] },
+
+					// Il menuId NON deve essere presente nel campo Menus
+					Menus: { $ne: menuId }
+				});
+			} catch (err) {
+				console.error('There was a problem finding the ricette' + err);
+				throw err;
+			}
+
+			const giorniSettimana = [
+				"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"
+			];
+
+			const idRicetteUsateInQuestaSettimana = new Set();
+			const ingredientiLastSeen = new Map();
+
+			const getIngIds = (ricetta) => {
+				if (!ricetta || !ricetta.Ingredienti) return [];
+				return ricetta.Ingredienti.map(ing => ing.toString());
+			};
+
+			const calcolaPunteggio = (ricetta, giornoIndex) => {
+				const ingIds = getIngIds(ricetta);
+				let distanzaMinima = 1000;
+				for (let ingId of ingIds) {
+					if (ingredientiLastSeen.has(ingId)) {
+						const distanza = giornoIndex - ingredientiLastSeen.get(ingId);
+						if (distanza < distanzaMinima) distanzaMinima = distanza;
+					}
+				}
+				return distanzaMinima + Math.random();
+			};
+
+			const selezionaRicetta = async (orariAmmessi, giornoIndex, ricettaDaEvitare = null) => {
+				// Filtro 1: Orario compatibile e non usata nella settimana corrente
+				let pool = candidati.filter(r =>
+					orariAmmessi.includes(r.Orario) &&
+					!idRicetteUsateInQuestaSettimana.has(r._id.toString())
+				);
+
+				// Filtro 2: Evita ingredienti usati nel pasto precedente dello STESSO giorno
+				if (ricettaDaEvitare) {
+					const ingredientiVietati = new Set(getIngIds(ricettaDaEvitare));
+					const poolFiltrato = pool.filter(r => {
+						const ingredientiR = getIngIds(r);
+						return !ingredientiR.some(ing => ingredientiVietati.has(ing));
+					});
+
+					// Se il filtro ingredienti svuota il pool, lo ignoriamo per non lasciare il pasto vuoto
+					if (poolFiltrato.length > 0) {
+						pool = poolFiltrato;
+					}
+				}
+
+				if (pool.length === 0) return null;
+
+				// Ordinamento per varietà (punteggio distanza)
+				pool.sort((a, b) => calcolaPunteggio(b, giornoIndex) - calcolaPunteggio(a, giornoIndex));
+				const scelta = pool[0];
+
+				// Segna come usata
+				idRicetteUsateInQuestaSettimana.add(scelta._id.toString());
+				getIngIds(scelta).forEach(id => ingredientiLastSeen.set(id, giornoIndex));
+
+				// Aggiorna la ricetta nel DB aggiungendo il riferimento al Menu
+				await Ricetta.findByIdAndUpdate(scelta._id, {
+					$addToSet: { Menus: menuId }
+				});
+
+				return scelta;
+			};
+
+			// 2. Generazione dei giorni
+			const nuoviGiorni = [];
+			for (let i = 0; i < giorniSettimana.length; i++) {
+				// Cerchiamo il pranzo (Orario 1 o 3)
+				const pranzo = await selezionaRicetta([1, 3], i, null);
+
+				// Cerchiamo la cena (Orario 2 o 3) passandogli il pranzo per evitare duplicati di ingredienti
+				const cena = await selezionaRicetta([2, 3], i, pranzo);
+
+				nuoviGiorni.push({
+					Nome: giorniSettimana[i],
+					Pranzo: pranzo ? pranzo._id : null,
+					Cena: cena ? cena._id : null
+				});
+			}
+
+			// 3. Salvataggio finale su Settimana
+			const settimanaAggiornata = await Settimana.findByIdAndUpdate(
+				settimana._id,
+				{ $set: { Giorni: nuoviGiorni } },
+				{ new: true }
+			);
+
+			return settimanaAggiornata;
+
+		} catch (err) {
+			console.error("Errore generazione settimana:", err);
+			throw err;
+		}
+	}
+
 	async insertIngrediente(nome, prezzo) {
 		let newIngrediente = null;
 		try {
