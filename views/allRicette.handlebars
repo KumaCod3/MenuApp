@@ -1,6 +1,7 @@
 <a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
 <a href="/ingredienti" class="btn btn-secondary mb-3">Gestisci Ingredienti</a>
 <button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTE LE RICETTE</BUTTON>
+<button id="CleanButton" class="btn btn-primary mb-3">Pulisci TUTTE LE RICETTE</button>
 <button id="loadJSON" class="btn btn-secondary mb-3">Carica JSON</button>
 <button id="dwnJSON" class="btn btn-secondary mb-3">Scarica JSON</button>
 <h2 class="display-4">Le Ricette</h2>
@@ -270,6 +271,34 @@ async function caricaJSON(file) {
 	}
 }
 
+	// CleanButton
+	document.getElementById("CleanButton").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			const recipeData = {
+				Name: "ciao",
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			console.log("config data: " + fetchConfigData.body);
+
+			// Endpoint per eliminare tutte le ricette
+			const response = await fetch("/CleanRic", fetchConfigData);
+			if (response.ok) {
+				const recipes = await response.json();
+				loadTableWithRecipes(recipes);
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
+		}
+	});
+
 // DROPButton
 document.getElementById("DROPButton").addEventListener("click", async (e) => {
 	e.preventDefault();
@@ -352,8 +381,6 @@ document.getElementById("submitButton").addEventListener("click", async (e) => {
 		console.log(`Error: ${err}`);
 	}
 });
-
-
 
 async function caricaTavola(){
 	try {

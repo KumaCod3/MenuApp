@@ -143,6 +143,17 @@ class DBmenu {
 			throw err;
 		}
 	}
+
+	async CleanTuttoRic() {
+		try {
+			await Ricetta.updateMany({}, { $set: { Menus: [] } });
+			return null;
+		} catch (err) {
+			console.error("Errore durante lo svuotamento dei Menu:", err);
+			throw err;
+		}
+	}
+
 	async RimuoviTuttoMen() {
 		try {
 			await Settimana.deleteMany({}); // per droppare tutte ricette!!!!
@@ -163,6 +174,67 @@ class DBmenu {
 			throw err;
 		}
 		return ingredienti;
+	}
+
+	async insertSettimana(giorni, id) {
+		try {
+			let ricetteNuove = [];
+			const giorniProcessati = [];
+
+			const nomiGiorni = [
+				"Lunedì", "Martedì", "Mercoledì", 'Giovedì', "Venerdì", "Sabato", "Domenica"
+			];
+
+			for (let i = 0; i < 7;i++) {
+				const g = giorni[i];
+				const pranzoId = await this._getRicettaId(g.Pranzo);
+				const cenaId = await this._getRicettaId(g.Cena);
+
+				if (pranzoId == null) {
+					ricetteNuove.push(g.Pranzo);
+				}
+				if (cenaId == null) {
+					ricetteNuove.push(g.Cena);
+				}
+
+				giorniProcessati.push({
+					Nome: nomiGiorni[i],
+					Pranzo: pranzoId,
+					Cena: cenaId
+				});
+			}
+
+			await Settimana.findByIdAndUpdate(
+				id,
+				{ $set: { Giorni: giorniProcessati } },
+				{ new: true }
+			);
+
+		} catch (err) {
+			console.error('Errore durante l\'inserimento della settimana/menu:', err);
+			throw err;
+		}
+	}
+
+	// Funzione helper per trovare una ricetta esistente (per ID o Nome)
+	async _getRicettaId(identificatore) {
+		if (!identificatore || identificatore === "") return null;
+
+		try {
+			let ricetta = null;
+			// Prova a cercare per ID
+			try {
+				ricetta = await Ricetta.findById(identificatore);
+			} catch (e) {
+				// Se non è un ID valido, cerca per Nome
+				ricetta = await Ricetta.findOne({ Name: identificatore });
+			}
+
+			return ricetta ? ricetta._id : null;
+		} catch (err) {
+			console.warn(`Non è stato possibile trovare la ricetta: ${identificatore}`);
+			return null;
+		}
 	}
 
 	async insertRicetta(nome, ingred, temperatura, orario, prova) {
@@ -212,7 +284,7 @@ class DBmenu {
 		}
 	}
 
-	async modificaRicetta(id, nome, ingred, temperatura, orario, prova) {
+	async modificaRicetta(id, nome, ingred, temperatura, orario, prova, note) {
 		let ingredArray = [];
 		for (let i = 0; i < ingred.length; i++) {
 			const nomeGiro = ingred[i];
@@ -253,7 +325,8 @@ class DBmenu {
 					Ingredienti: ingredArray,
 					Temperatura: temperatura,
 					Orario: orario,
-					Prova: prova
+					Prova: prova,
+					Note: note
 				},
 				{ new: true } // questo restituisce il documento aggiornato
 			);
@@ -335,16 +408,11 @@ class DBmenu {
 			const temperaturaScelta = settimana.Temperatura;
 			const menuId = settimana.Menu;
 
-			// 1. Recupera TUTTE le ricette candidate per questa temperatura
-			// che non sono ancora state associate a questo Menu
 			let candidati = {};
 
 			try {
 				candidati = await Ricetta.find({
-					// La temperatura deve essere una tra quelle nell'array
 					Temperatura: { $in: [temperaturaScelta, 3, 0] },
-
-					// Il menuId NON deve essere presente nel campo Menus
 					Menus: { $ne: menuId }
 				});
 			} catch (err) {
@@ -517,8 +585,8 @@ class DBmenu {
 			// Trova la ricetta per nome e rimuovi l'ingrediente specificato
 			const updatedRicetta = await Ricetta.findOneAndUpdate(
 				{ Name: nome },
-				{ $pull: { Ingredienti: id } }, // Usa $pull per rimuovere l'ID dall'array
-				{ new: true } // Restituisce il documento aggiornato
+				{ $pull: { Ingredienti: id } }, 
+				{ new: true } 
 			);
 
 			if (!updatedRicetta) {
@@ -527,10 +595,10 @@ class DBmenu {
 			}
 
 			console.log("Ricetta aggiornata:", updatedRicetta);
-			return updatedRicetta; // Restituisce la ricetta aggiornata
+			return updatedRicetta; 
 		} catch (err) {
 			console.error('C\'è stato un problema nel rimuovere l\'ingrediente dalla ricetta:', err);
-			throw err; // Rilancia l'errore
+			throw err;
 		}
 	}
 

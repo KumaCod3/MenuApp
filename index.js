@@ -171,109 +171,6 @@ app.post('/genSett', async (req, res) => {
 	}
 });
 
-
-//app.post('/genMENU', async (req, res) => {
-//	try {
-//		const nome = req.body.Name || 'Menu Generato';
-//		const temperaturaScelta = req.body.Temperatura;
-
-//		const candidati = await db.getRicetteTemp(temperaturaScelta);
-
-//		const giorniSettimana = [
-//			"Luned&igrave;", "Marted&igrave;", "Mercoled&igrave;",
-//			"Gioved&igrave;", "Venerd&igrave;", "Sabato", "Domenica"
-//		];
-
-//		const giorniGenerati = [];
-//		const idRicetteUsate = new Set();
-
-//		const ingredientiLastSeen = new Map();
-
-//		// Funzione helper per estrarre gli ID degli ingredienti come stringhe
-//		const getIngIds = (ricetta) => {
-//			if (!ricetta.Ingredienti) return [];
-//			return ricetta.Ingredienti.map(ing =>
-//				(ing._id ? ing._id.toString() : ing.toString())
-//			);
-//		};
-
-//		// Funzione per calcolare distanza di una ricetta
-//		const calcolaPunteggio = (ricetta, giornoIndex) => {
-//			const ingIds = getIngIds(ricetta);
-//			let distanzaMinima = 1000; // Valore alto di default
-
-//			for (let ingId of ingIds) {
-//				if (ingredientiLastSeen.has(ingId)) {
-//					const ultimoGiornoVisto = ingredientiLastSeen.get(ingId);
-//					const distanza = giornoIndex - ultimoGiornoVisto;
-//					if (distanza < distanzaMinima) {
-//						distanzaMinima = distanza;
-//					}
-//				}
-//			}
-//			// casualità per variare se le distanze sono uguali
-//			return distanzaMinima + Math.random();
-//		};
-//		const selezionaRicetta = (orariAmmessi, giornoIndex, ricettaDaEvitare = null) => {
-//			// 1. Filtra per Orario e non già usata nel menu
-//			let pool = candidati.filter(r =>
-//				orariAmmessi.includes(r.Orario) &&
-//				!idRicetteUsate.has(r._id.toString())
-//			);
-
-//			// 2. CONSTRAINT RIGIDO: da evitare ripetizioni stesso giorno
-//			if (ricettaDaEvitare) {
-//				const ingredientiDaEvitare = new Set(getIngIds(ricettaDaEvitare));
-//				pool = pool.filter(r => {
-//					const ingredientiR = getIngIds(r);
-//					return !ingredientiR.some(ing => ingredientiDaEvitare.has(ing));
-//				});
-//			}
-
-//			if (pool.length === 0) return null;
-
-//			// 3. CONSTRAINT SOFT: Ordina per  distanza
-//			pool.sort((a, b) => {
-//				const scoreA = calcolaPunteggio(a, giornoIndex);
-//				const scoreB = calcolaPunteggio(b, giornoIndex);
-//				return scoreB - scoreA;
-//			});
-//			const scelta = pool[0];
-
-//			// 4. Aggiorna mappa
-//			idRicetteUsate.add(scelta._id.toString());
-//			const ingIds = getIngIds(scelta);
-//			ingIds.forEach(id => ingredientiLastSeen.set(id, giornoIndex));
-
-//			return scelta;
-//		};
-
-//		// --- CICLO GENERAZIONE ---
-//		for (let i = 0; i < giorniSettimana.length; i++) {
-//			const giorno = giorniSettimana[i];
-//			const ricettaPranzo = selezionaRicetta([1, 3], i, null);
-//			const ricettaCena = selezionaRicetta([2, 3], i, ricettaPranzo);
-
-//			if (ricettaPranzo || ricettaCena) {
-//				giorniGenerati.push({
-//					Nome: giorno,
-//					Pranzo: ricettaPranzo ? ricettaPranzo._id : null,
-//					Cena: ricettaCena ? ricettaCena._id : null
-//				});
-//			}
-//		}
-//		await db.insertMenu(nome, temperaturaScelta, giorniGenerati);
-
-//		const allMen = await db.getAllMenu();
-//		res.json(allMen);
-
-//	} catch (err) {
-//		console.error("Errore nella creazione menu:", err);
-//		res.status(500).json({ "error": "Impossibile creare il menu" });
-//	}
-//});
-
-
 app.post('/Nricetta', async (req, res) => {
 	try {
 		const nome = req.body.Name || 'noName'; 
@@ -297,14 +194,13 @@ app.post('/MODricetta', async (req, res) => {
 		const temperatura = req.body.Temperatura; 
 		const orario = req.body.Orario;
 		const prova = req.body.Prova;
-		const RicRic = await db.modificaRicetta(id, nome, ingredienti, temperatura, orario, prova);
+		const note = req.body.Note;
+		const RicRic = await db.modificaRicetta(id, nome, ingredienti, temperatura, orario, prova, note);
 		res.json(RicRic);
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
 });
-
-
 
 app.post('/NricettaJSN', async (req, res) => {
 	try {
@@ -315,6 +211,18 @@ app.post('/NricettaJSN', async (req, res) => {
 		console.log("aspetto " + nome);
 		await db.insertRicetta(nome, ingredienti, temperatura, orario);
 		res.status(200);
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+});
+
+app.post('/caricaSettimana', async (req, res) => {
+	try {
+		const giorni = req.body.Giorni || 'noIngred';
+		const idd = req.body.idd;
+		console.log("aspetto carico settimana");
+		await db.insertSettimana(giorni, idd);
+		res.status(200).send("OK");;
 	} catch (err) {
 		res.status(500).json({ "results": "none" });
 	}
@@ -338,6 +246,16 @@ app.post('/NomeRic', async (req, res) => {
 app.post('/DELETETUTTOric', async (req, res) => { 
 	try {
 		await db.RimuoviTuttoRic();
+		const allRic = await db.getAllRicette();
+			res.json(allRic); 
+	} catch (err) {
+		res.status(500).json({"results": "none"});
+	}
+})
+
+app.post('/CleanRic', async (req, res) => {
+	try {
+		await db.CleanTuttoRic();
 		const allRic = await db.getAllRicette();
 			res.json(allRic); 
 	} catch (err) {

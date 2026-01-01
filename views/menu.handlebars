@@ -8,7 +8,7 @@
 <h3 class="display-5">Crea nuovo menu:</h3>
 <form id="newMenuForm">
 	<div class="form-group">
-		<label for="Titolo">Titolo (lascia vuoto per generare un nome)</label>
+		<label for="Titolo">Titolo </label>
 		<input type="text" class="form-control" name="Titolo" id="Titolo">
 	</div>
 	<div class="row mb-3">
@@ -184,9 +184,9 @@
 			for (let i = 0; i < menu.Settimane.length; i++) {
 				const tr = document.createElement("tr");
 				tr.style.cursor = "pointer";
-
 				// verifico se nella settimana sono presenti dati
-				const infoSettimana = menu.Settimane[i].Giorni[0].length > 0 ? "Menu presente" : "Menu Vuoto";
+				const infoSettimana = eVuoto(menu.Settimane[i]) ? "Vuoto" : "Menu Presente";
+			//	const infoSettimana = menu.Settimane[i].Giorni[0].Pranzo != null ? "Menu presente" : "Menu Vuoto";
 
 				tr.innerHTML = `
 				<td><strong>${menu.Settimane[i].Name}</strong></td>
@@ -207,5 +207,17 @@
 
 		// Reset del form dopo il caricamento
 		document.getElementById("newMenuForm").reset();
+	}
+
+	function eVuoto(settimana) {
+		if (!settimana || !settimana.Giorni) {
+			return true;
+		}
+		for (const giorno of settimana.Giorni) {
+			if (giorno.Pranzo || giorno.Cena) {
+				return false;
+			}
+		}
+		return true;
 	}
 </script>

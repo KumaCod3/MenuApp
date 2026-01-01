@@ -3,6 +3,7 @@
 <a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
 <button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
 <button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
+<button id="LoadMenu" class="btn btn-primary mb-3">Carica Menu</button>
 <h2 class="display-4">Ecco il tuo menu</h2>
 <p>
 	<h3 id="intestazione">Name per l'Temperatura</h3>
@@ -157,11 +158,30 @@
 			container.innerHTML += getTabellaView(giorno);
 		});
 	}
-/*
+
+
 	function getTabellaView(dati) {
+		// Estraiamo i dati per il Pranzo
 		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
+		const idPranzo = dati.Pranzo ? dati.Pranzo.Id : null;
+		const notaPranzo = dati.Pranzo ? (dati.Pranzo.Note || 'n') : ''; // Recupero nota
+
+		// Estraiamo i dati per la Cena
 		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
+		const idCena = dati.Cena ? dati.Cena.Id : null;
+		const notaCena = dati.Cena ? (dati.Cena.Note || '') : ''; // Recupero nota
+
 		const nomeGiorno = dati.Nome || 'Giorno';
+
+		// Funzione di utilità per renderizzare la cella cliccabile del nome ricetta
+		const renderRecipeCell = (nome, id, tipo) => {
+			if (!id || nome === '-') return `<td>${nome}</td>`;
+			return `
+		<td onclick="gestisciClick('${id}', '${tipo}')" 
+			style="cursor: pointer; color: #007bff; text-decoration: underline;">
+			${nome}
+		</td>`;
+		};
 
 		return `
 	<div class="card mb-3">
@@ -172,66 +192,27 @@
 			<table class="table table-bordered mb-0">
 				<thead>
 					<tr>
-						<th style="width: 50%">Pranzo</th>
-						<th style="width: 50%">Cena</th>
+						<th style="width: 10%">Pasto</th>
+						<th style="width: 25%">Ricetta</th>
+						<th style="width: 65%">Note</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<td>${nomePranzo}</td>
-						<td>${nomeCena}</td>
+						<td class="fw-bold">Pranzo</td>
+						${renderRecipeCell(nomePranzo, idPranzo, 'PRANZO')}
+						<td><small class="text-muted">${notaPranzo}</small></td>
+					</tr>
+					<tr>
+						<td class="fw-bold">Cena</td>
+						${renderRecipeCell(nomeCena, idCena, 'CENA')}
+						<td><small class="text-muted">${notaCena}</small></td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 	</div>
 	`;
-	}
-*/
-
-	function getTabellaView(dati) {
-		// Estraiamo i nomi e gli ID (assumendo che la proprietà si chiami .Id o .id)
-		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
-		const idPranzo = dati.Pranzo ? dati.Pranzo.Id : null;
-
-		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
-		const idCena = dati.Cena ? dati.Cena.Id : null;
-
-		const nomeGiorno = dati.Nome || 'Giorno';
-
-		// Funzione di utilità interna per generare la cella o il trattino
-		const renderCell = (nome, id, tipo) => {
-			if (!id || nome === '-') return `<td>${nome}</td>`;
-			return `
-			<td onclick="gestisciClick('${id}', '${tipo}')" 
-				style="cursor: pointer; color: #007bff; text-decoration: underline;">
-				${nome}
-			</td>`;
-		};
-
-		return `
-<div class="card mb-3">
-	<div class="card-header bg-info text-white">
-		<h5 class="my-0">${nomeGiorno}</h5> 
-	</div>
-	<div class="card-body p-0">
-		<table class="table table-bordered mb-0">
-			<thead>
-				<tr>
-					<th style="width: 50%">Pranzo</th>
-					<th style="width: 50%">Cena</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					${renderCell(nomePranzo, idPranzo, 'PRANZO')}
-					${renderCell(nomeCena, idCena, 'CENA')}
-				</tr>
-			</tbody>
-		</table>
-	</div>
-</div>
-`;
 	}
 
 	function gestisciClick(id, tipo) {
@@ -246,8 +227,7 @@
 		}
 	}
 
-
-	 function popolaLista(dati) {
+	function popolaLista(dati) {
 		const container = document.getElementById("contenitoreLista");
 		container.innerHTML = "";
 		if (dati.length === 0) {
@@ -279,5 +259,83 @@
 		}
 
 		return arrayFinale;
+	}
+
+	// LoadMenu
+	const btnLoad = document.getElementById('LoadMenu');
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = '.txt';
+	btnLoad.addEventListener('click', () => {
+		fileInput.click();
+	});
+	fileInput.addEventListener('change', (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			elaboraSettimana(file);
+		}
+	});
+	async function elaboraSettimana(file) {
+		const testo = await file.text();
+
+		const nomeSettimana = name;
+		const tempSettimana = thisSettiamana.Temperatura;
+
+		const righe = testo.split('\n').map(r => r.trim()).filter(r => r !== "");
+		let giorniArray = [];
+
+		let giornoCorrente = null;
+		let ii = 0;
+		righe.forEach(riga => {
+			// Se la riga è solo un numero, inizia un nuovo giorno
+			if (!isNaN(riga)) {
+				if (giornoCorrente) giorniArray.push(giornoCorrente);
+				giornoCorrente = {Pranzo: "", Cena: "" };
+				ii++;
+			}
+			else if (riga.toLowerCase().startsWith("pranzo:")) {
+				giornoCorrente.Pranzo = riga.replace(/pranzo:/i, "").trim();
+			}
+			else if (riga.toLowerCase().startsWith("cena:")) {
+				giornoCorrente.Cena = riga.replace(/cena:/i, "").trim();
+			}
+		});
+		if (giornoCorrente) giorniArray.push(giornoCorrente);
+
+		const payload = {
+			Giorni: giorniArray,
+			idd: id
+		};
+
+		console.log("Dati pronti per l'invio:", payload);
+
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+		try {
+			const response = await fetch("/caricaSettimana", {
+				method: "POST",
+				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" },
+				signal: controller.signal
+			});
+
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+		//		window.location.href = '/menu';
+			} else {
+				const errorData = await response.json();
+				console.error("Errore Server:", errorData);
+				alert("Errore durante il caricamento.");
+			}
+
+		} catch (err) {
+			if (err.name === 'AbortError') {
+				console.error("Timeout: Il server non ha risposto.");
+			} else {
+				console.error("Errore Generico:", err);
+			}
+		}
 	}
 </script>
