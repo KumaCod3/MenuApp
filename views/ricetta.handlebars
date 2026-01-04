@@ -152,7 +152,7 @@ function updateHiddenInput() {
 	hiddenInput.value = ingredientValues.join(",");
 	}
 
-	function updateNoteInput(event) {
+function updateNoteInput(event) {
 		// 'event.target' si riferisce all'elemento input stesso
 		nota = event.target.value;
 
@@ -193,195 +193,195 @@ function loadTableListeners() {
 	});
 }
 
-	// DROPButton
-	document.getElementById("DROPButton").addEventListener("click", async (e) => {
-		e.preventDefault();
+// DROPButton
+document.getElementById("DROPButton").addEventListener("click", async (e) => {
+	e.preventDefault();
 
-		try {
-			const recipeData = {
-				Name: nomeRicetta
-			};
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(recipeData),
-				headers: { "Content-Type": "application/json" }
-			};
-			console.log("config data: " + fetchConfigData.body);
+	try {
+		const recipeData = {
+			Name: nomeRicetta
+		};
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(recipeData),
+			headers: { "Content-Type": "application/json" }
+		};
+		console.log("config data: " + fetchConfigData.body);
 
-			const response = await fetch("/DELETERicetta", fetchConfigData);
-			if (response.ok) {
-				const recipes = await response.json();
-				window.location.href = '/ricette';
-			} else {
-				console.log("Error with the response data");
-			}
-		} catch (err) {
-			console.log(`Error: ${err}`);
+		const response = await fetch("/DELETERicetta", fetchConfigData);
+		if (response.ok) {
+			const recipes = await response.json();
+			window.location.href = '/ricette';
+		} else {
+			console.log("Error with the response data");
 		}
-	});
+	} catch (err) {
+		console.log(`Error: ${err}`);
+	}
+});
+
+// submitButton
+document.getElementById("submitButton").addEventListener("click", async (e) => {
+	e.preventDefault();
+
+	try {
+		const Name = nomeRicetta;
+
+		// Ottieni tutti gli input degli ingredienti
+		const hiddenInputs = document.querySelectorAll(".ingredient-input input"); 
+
+		var ingredienti = Array.from(hiddenInputs).map(input => {
+			const ingredienteNome = input.value.trim();
+			const ingredienteId = ingredientiMap[ingredienteNome];
+			return ingredienteId ? ingredienteId : ingredienteNome;
+		}).filter(ingrediente => ingrediente);
 
 
-	// submitButton
-	document.getElementById("submitButton").addEventListener("click", async (e) => {
-		e.preventDefault();
-
-		try {
-			const Name = nomeRicetta;
-
-			// Ottieni tutti gli input degli ingredienti
-			const hiddenInputs = document.querySelectorAll(".ingredient-input input"); 
-
-			var ingredienti = Array.from(hiddenInputs).map(input => {
-				const ingredienteNome = input.value.trim();
-				const ingredienteId = ingredientiMap[ingredienteNome];
-				return ingredienteId ? ingredienteId : ingredienteNome;
-			}).filter(ingrediente => ingrediente);
-
-
-			IngerOldId.forEach(ingrediente => {
-				if (!ingredienti.includes(ingrediente)) {
-					ingredienti.push(ingrediente);
-				}
-			});
-
-
-			console.log(Array.from(hiddenInputs));
-			const Temperatura1 = document.getElementById("Temperatura1").checked;
-			const Temperatura2 = document.getElementById("Temperatura2").checked;
-			const Orario1 = document.getElementById("Orario1").checked;
-			const Orario2 = document.getElementById("Orario2").checked;
-			const Orario = (Orario1?1:0)+(Orario2?2:0);
-			const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
-			const prova = document.getElementById("inProva").checked;
-			const Nota = nota;
-			console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
-			const recipeData = {
-				Name: Name,
-				Ingredienti: ingredienti,
-				Temperatura: Temperatura,
-				Orario: Orario,
-				Id: _idd,
-				Prova: prova,
-				Note : Nota
-			};
-			console.log(JSON.stringify(recipeData));
-
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(recipeData),
-				headers: { "Content-Type": "application/json" }
-			};
-			console.log("config data: " + fetchConfigData.body);
-
-			const response = await fetch("/MODricetta", fetchConfigData);
-			if (response.ok) {
-				const recipes = await response.json();
-				caricaTavola(_idd);
-			} else {
-				console.log("Error with the response data");
+		IngerOldId.forEach(ingrediente => {
+			if (!ingredienti.includes(ingrediente)) {
+				ingredienti.push(ingrediente);
 			}
-		} catch (err) {
-			console.log(`Error: ${err}`);
-		}
-	});
+		});
 
-	async function caricaTavola(id) {
-		try {
-			const ingData = {
-				Id: id,
-			};
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(ingData),
-				headers: { "Content-Type": "application/json" }
-			};
-			const response = await fetch("/NomeRic", fetchConfigData);
+
+		console.log(Array.from(hiddenInputs));
+		const Temperatura1 = document.getElementById("Temperatura1").checked;
+		const Temperatura2 = document.getElementById("Temperatura2").checked;
+		const Orario1 = document.getElementById("Orario1").checked;
+		const Orario2 = document.getElementById("Orario2").checked;
+		const Orario = (Orario1?1:0)+(Orario2?2:0);
+		const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
+		const prova = document.getElementById("inProva").checked;
+		const Nota = nota;
+		console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
+		const recipeData = {
+			Name: Name,
+			Ingredienti: ingredienti,
+			Temperatura: Temperatura,
+			Orario: Orario,
+			Id: _idd,
+			Prova: prova,
+			Note : Nota
+		};
+		console.log(JSON.stringify(recipeData));
+
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(recipeData),
+			headers: { "Content-Type": "application/json" }
+		};
+		console.log("config data: " + fetchConfigData.body);
+
+		const response = await fetch("/MODricetta", fetchConfigData);
+		if (response.ok) {
+			const recipes = await response.json();
+			caricaTavola(_idd);
+		} else {
+			console.log("Error with the response data");
+		}
+	} catch (err) {
+		console.log(`Error: ${err}`);
+	}
+});
+
+async function caricaTavola(id) {
+	try {
+		const ingData = {
+			Id: id,
+		};
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(ingData),
+			headers: { "Content-Type": "application/json" }
+		};
+		const response = await fetch("/NomeRic", fetchConfigData);
 			
-			if (response.ok) {
-				const recipes = await response.json();
-				QuestaRicetta = recipes;
-				nomeRicetta = recipes.Name;
-				nota = recipes.Note;
-				document.getElementById("note-display").setAttribute('value', nota);
-				console.log("carica tavola response: " + nota);
-				loadTableWithRecipes(recipes);
-			} else {
-				console.log("Error with the response data");
-			}
-		} catch (err) {
-			console.log(`Error: ${err}`);
+		if (response.ok) {
+			const recipes = await response.json();
+			QuestaRicetta = recipes;
+			nomeRicetta = recipes.Name;
+			nota = recipes.Note;
+			document.getElementById("note-display").setAttribute('value', nota);
+			console.log("carica tavola response: " + nota);
+			loadTableWithRecipes(recipes);
+		} else {
+			console.log("Error with the response data");
 		}
+	} catch (err) {
+		console.log(`Error: ${err}`);
 	}
+}
 
-	async function loadTableWithRecipes(recipes) {
-		const tableBody = document.querySelector("#legendTable tbody");
-		const titolo = document.querySelector("#nomeRicetta");
+async function loadTableWithRecipes(recipes) {
+	const tableBody = document.querySelector("#legendTable tbody");
+	const titolo = document.querySelector("#nomeRicetta");
 
-		tableBody.innerHTML = ""; // Clear the table
-		for (const ingredienteID of recipes.Ingredienti) {
-			const tr = document.createElement("tr");
-			tr.dataset.id = ingredienteID;
-			tr.style.cursor = "pointer";
-			const nomeIng = await getIngName(ingredienteID);
-			const nameTd = document.createElement("td");
-			nameTd.textContent = nomeIng;
-			tr.appendChild(nameTd);
-			IngerOldId.push(ingredienteID);
-			tableBody.appendChild(tr);
-		}
-		titolo.innerHTML = nomeRicetta;
-
-		// Rimuovi eventuali classi esistenti
-		titolo.classList.remove("cols-red", "cols-black");
-
-		// Aggiungi la classe in base al valore di 'prova'
-		titolo.classList.add(recipes.Prova ? "cols-red" : "cols-black");
-
-
-		loadTableListeners();
-		document.getElementById("newRecipeForm").reset();
-		setCheckboxes();
+	tableBody.innerHTML = ""; // Clear the table
+	for (const ingredienteID of recipes.Ingredienti) {
+		const tr = document.createElement("tr");
+		tr.dataset.id = ingredienteID;
+		tr.style.cursor = "pointer";
+		const nomeIng = await getIngName(ingredienteID);
+		const nameTd = document.createElement("td");
+		nameTd.textContent = nomeIng;
+		tr.appendChild(nameTd);
+		IngerOldId.push(ingredienteID);
+		tableBody.appendChild(tr);
 	}
+	titolo.innerHTML = nomeRicetta;
 
-	function setCheckboxes() {
-		const tempe = QuestaRicetta.Temperatura;
-		const orar = QuestaRicetta.Orario;
-		const prova = QuestaRicetta.Prova;
-		const ricettaEstiva = (tempe == 1 ? true : false) || (tempe == 3 ? true : false);
-		const ricettaInvernale = (tempe == 2 ? true : false) || (tempe == 3 ? true : false);
-		const ricettaPranzo = (orar == 1 ? true : false) || (orar == 3 ? true : false);
-		const ricettaCena = (orar == 2 ? true : false) || (orar == 3 ? true : false);
-		console.log("carica temperatura: " + tempe);
-		document.getElementById('Temperatura1').checked = ricettaEstiva;
-		document.getElementById('Temperatura2').checked = ricettaInvernale;
-		document.getElementById('Orario1').checked = ricettaPranzo;
-		document.getElementById('Orario2').checked = ricettaCena;
-		document.getElementById('inProva').checked = prova;
-	}
+	// Rimuovi eventuali classi esistenti
+	titolo.classList.remove("cols-red", "cols-black");
 
-	async function getIngName(ingredientId) {
-		let nomeIng = "";
+	// Aggiungi la classe in base al valore di 'prova'
+	titolo.classList.add(recipes.Prova ? "cols-red" : "cols-black");
 
-			const ingData = {
-				Id: ingredientId,
-			};
-			//console.log('HandeB cerco ID:', ingData.Id);
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(ingData),
-				headers: { "Content-Type": "application/json" }
-			};
-			const response = await fetch("/NomeIngr", fetchConfigData);
-			if (response.ok) {
-				const ingrediente = await response.json();
-				let nm = 'noName';
-				if (ingrediente != null) {
-					nomeIng=ingrediente.Name;
-				}
-			} else {
-				console.log("Error with the response data");
+
+	loadTableListeners();
+	document.getElementById("newRecipeForm").reset();
+	setCheckboxes();
+	console.log(JSON.stringify(recipes));
+}
+
+function setCheckboxes() {
+	const tempe = QuestaRicetta.Temperatura;
+	const orar = QuestaRicetta.Orario;
+	const prova = QuestaRicetta.Prova;
+	const ricettaEstiva = (tempe == 1 ? true : false) || (tempe == 3 ? true : false);
+	const ricettaInvernale = (tempe == 2 ? true : false) || (tempe == 3 ? true : false);
+	const ricettaPranzo = (orar == 1 ? true : false) || (orar == 3 ? true : false);
+	const ricettaCena = (orar == 2 ? true : false) || (orar == 3 ? true : false);
+	console.log("carica temperatura: " + tempe);
+	document.getElementById('Temperatura1').checked = ricettaEstiva;
+	document.getElementById('Temperatura2').checked = ricettaInvernale;
+	document.getElementById('Orario1').checked = ricettaPranzo;
+	document.getElementById('Orario2').checked = ricettaCena;
+	document.getElementById('inProva').checked = prova;
+}
+
+async function getIngName(ingredientId) {
+	let nomeIng = "";
+
+		const ingData = {
+			Id: ingredientId,
+		};
+		//console.log('HandeB cerco ID:', ingData.Id);
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(ingData),
+			headers: { "Content-Type": "application/json" }
+		};
+		const response = await fetch("/NomeIngr", fetchConfigData);
+		if (response.ok) {
+			const ingrediente = await response.json();
+			let nm = 'noName';
+			if (ingrediente != null) {
+				nomeIng=ingrediente.Name;
 			}
-	return nomeIng;
-	}
+		} else {
+			console.log("Error with the response data");
+		}
+return nomeIng;
+}
 
 </script>

@@ -60,19 +60,6 @@ class DBmenu {
 		}
 	}
 
-	async getAllMenu() {
-		let menus = [];
-		try {
-			menus = await Menu.find()
-				.populate('Settimane')
-				.lean(); // forse da togliere
-		} catch (err) {
-			console.error('C\'è stato un problema con l\'estrazione delle settimane:', err);
-			throw err;
-		}
-		return menus;
-	}
-
 	async getAllRicette() {
 		let ricette = [];
 		try {
@@ -82,7 +69,7 @@ class DBmenu {
 			throw err;
 		}
 		return ricette;
-	}
+	}// /ricette /DELETERicetta /ricet /Nricetta /DELETETUTTOric /CleanRic
 
 	async getAllRicetteJN() {
 		let ricette = [];
@@ -93,7 +80,7 @@ class DBmenu {
 			throw err;
 		}
 		return ricette;
-	}
+	} // noooo
 
 	async getAllIngredienti() {
 		let ingredienti = [];
@@ -104,7 +91,7 @@ class DBmenu {
 			throw err;
 		}
 		return ingredienti;
-	}
+	} // /ingredienti e  /ingred //Ningrediente /DELETEingredient
 
 	async removeSingleIngredient(name) {
 		let updatedItem = null;
@@ -117,7 +104,7 @@ class DBmenu {
 			throw err;
 		}
 		return;
-	}
+	} // /DELETEingredient
 
 	async removeSingleRecepit(name) {
 		let updatedItem = null;
@@ -132,7 +119,7 @@ class DBmenu {
 			throw err;
 		}
 		return;
-	}
+	} // /DELETERicetta
 
 	async RimuoviTuttoRic() {
 		try {
@@ -142,7 +129,7 @@ class DBmenu {
 			console.error(err);
 			throw err;
 		}
-	}
+	} // /DELETETUTTOric
 
 	async CleanTuttoRic() {
 		try {
@@ -152,7 +139,7 @@ class DBmenu {
 			console.error("Errore durante lo svuotamento dei Menu:", err);
 			throw err;
 		}
-	}
+	} // /CleanRic
 
 	async RimuoviTuttoMen() {
 		try {
@@ -163,7 +150,7 @@ class DBmenu {
 			console.error(err);
 			throw err;
 		}
-	}
+	} // /DELETETUTTOmen
 
 	async getAllIngredientiJN() {
 		let ingredienti = [];
@@ -174,7 +161,7 @@ class DBmenu {
 			throw err;
 		}
 		return ingredienti;
-	}
+	} // noooo
 
 	async insertSettimana(giorni, id) {
 		try {
@@ -214,28 +201,19 @@ class DBmenu {
 			console.error('Errore durante l\'inserimento della settimana/menu:', err);
 			throw err;
 		}
-	}
+	} // /caricaSettimana
 
 	// Funzione helper per trovare una ricetta esistente (per ID o Nome)
 	async _getRicettaId(identificatore) {
-		if (!identificatore || identificatore === "") return null;
-
+		let ricetta = null;
 		try {
-			let ricetta = null;
-			// Prova a cercare per ID
-			try {
-				ricetta = await Ricetta.findById(identificatore);
-			} catch (e) {
-				// Se non è un ID valido, cerca per Nome
-				ricetta = await Ricetta.findOne({ Name: identificatore });
-			}
-
-			return ricetta ? ricetta._id : null;
-		} catch (err) {
-			console.warn(`Non è stato possibile trovare la ricetta: ${identificatore}`);
-			return null;
+			ricetta = await Ricetta.findById(identificatore);
+		} catch (e) {
+			// Se non è un ID valido, cerca per Nome
+			ricetta = await Ricetta.findOne({ Name: identificatore });
 		}
-	}
+		return ricetta;
+	} // /NomeRic
 
 	async insertRicetta(nome, ingred, temperatura, orario, prova) {
 		let ingredArray = [];
@@ -282,7 +260,7 @@ class DBmenu {
 		} catch (err) {
 			console.error("non e un ingrediente");
 		}
-	}
+	} // /Nricetta /NricettaJSN
 
 	async modificaRicetta(id, nome, ingred, temperatura, orario, prova, note) {
 		let ingredArray = [];
@@ -340,7 +318,7 @@ class DBmenu {
 		} catch (err) {
 			console.error("Errore durante l'aggiornamento della ricetta:", err);
 		}
-	}
+	} // /MODricetta
 
 	async insertMenu(nome, temperatura) {
 		let newMenu = null;
@@ -358,7 +336,7 @@ class DBmenu {
 		}
 		await this.popolaMenu(newMenu);
 		return newMenu;
-	}
+	} // /Nmenu
 
 	async popolaMenu(newMenu) {
 		const menID = newMenu._id;
@@ -397,11 +375,7 @@ class DBmenu {
 
 		// Salviamo il menu con i riferimenti alle 4 settimane create
 		await newMenu.save();
-	}
-
-	async resettaRicette() {
-		await Ricetta.updateMany({}, { $pull: { Menus: settimana.Menu } });
-	}
+	} // insertMenu()
 
 	async generaSettimana(settimana) {
 		try {
@@ -512,7 +486,7 @@ class DBmenu {
 			console.error("Errore generazione settimana:", err);
 			throw err;
 		}
-	}
+	} // /genSett
 
 	async insertIngrediente(nome, prezzo) {
 		let newIngrediente = null;
@@ -528,7 +502,7 @@ class DBmenu {
 			throw err;
 		}
 		return newIngrediente;
-	}
+	} // /Ningrediente
 
 	async getRicetteTemp(temp) {
 		let ricette = [];
@@ -549,7 +523,7 @@ class DBmenu {
 			throw err;
 		}
 		return ricette;
-	}
+	} // noooo
 
 	async getRicetteOra(ora) {
 		let ricette = [];
@@ -565,7 +539,7 @@ class DBmenu {
 			throw err;
 		}
 		return ricette;
-	}
+	} //  noooo
 
 	async getRicetta(nome) {
 		let ricetta = null;
@@ -576,7 +550,7 @@ class DBmenu {
 			throw err;
 		}
 		return ricetta;
-	}
+	} // noooo
 
 	async removeIngRecepit(nome, id) {
 		try {
@@ -600,8 +574,8 @@ class DBmenu {
 			console.error('C\'è stato un problema nel rimuovere l\'ingrediente dalla ricetta:', err);
 			throw err;
 		}
-	}
-
+	} // /DELETEingFROMrec
+/*
 	async getRicettaID(_id) {
 		let ricetta = null;
 		try {
@@ -611,6 +585,20 @@ class DBmenu {
 			throw err;
 		}
 		return ricetta;
+	} // /ricetta/:id
+*/
+
+	async getAllMenu() {
+		let menus = [];
+		try {
+			menus = await Menu.find()
+				.populate('Settimane')
+				.lean(); // forse da togliere
+		} catch (err) {
+			console.error('C\'è stato un problema con l\'estrazione delle settimane:', err);
+			throw err;
+		}
+		return menus;
 	}
 
 	async getIngrediente(nome) {
@@ -624,7 +612,7 @@ class DBmenu {
 			throw err;
 		}
 		return ingrediente;
-	}
+	} // noooo
 
 	async getIngredienteID(_id) {
 		let ingrediente = null;
@@ -635,7 +623,7 @@ class DBmenu {
 			throw err;
 		}
 		return ingrediente;
-	}
+	} // /NomeIngr
 
 	async getMenuID(_id) {
 		let menu = null;
@@ -648,7 +636,7 @@ class DBmenu {
 			throw err;
 		}
 		return menu;
-	}
+	} // /MenuID
 
 	async getSettID(_id) {
 		let settim = null;
@@ -662,7 +650,7 @@ class DBmenu {
 			throw err;
 		}
 		return settim;
-	}
+	} // /pian
 
 	async getSettByMenID(_id, nSett) {
 		let menu = null;

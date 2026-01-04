@@ -7,8 +7,7 @@ const DBmenu = require('./DBmenu');
 const db = new DBmenu();
 
 const app = express(); 
-const handlebars = require('express-handlebars').create({defaultLayout: 'main'});
-
+const handlebars = require('express-handlebars').create({ defaultLayout: 'main' });
 
 app.use(express.json());
 app.use(morgan('dev')); 
@@ -58,7 +57,7 @@ app.get('/ricetta/:id', async (req, res) => {
 	try {
 		const _id = req.params.id;
 		console.log("questo e lid " + _id);
-		const ricetta = await db.getRicettaID(_id);
+		const ricetta = await db._getRicettaId(_id);// cambiato
 		res.render('ricetta', { menu: ricetta });
 	} catch (err) {
 		res.status(500).json({ message: err.message });
@@ -81,7 +80,7 @@ app.get('/ingred', async (req, res) => {
   } catch (err) {
 	res.status(500).json({ message: err.message });
   }
-});
+}); // allRic
 
 app.post('/Ningrediente', async (req, res) => {
 	try {
@@ -94,7 +93,7 @@ app.post('/Ningrediente', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-});
+}); // alIng
 
 app.post('/DELETEingredient', async (req, res) => { 
 	const Name = req.body.Name; 
@@ -102,7 +101,7 @@ app.post('/DELETEingredient', async (req, res) => {
 	await db.removeSingleIngredient(Name);
 	const allInged = await db.getAllIngredienti();
 	res.json(allInged);
-});
+}); // allIng
 
 app.post('/DELETERicetta', async (req, res) => { 
 	const Name = req.body.Name; 
@@ -110,7 +109,7 @@ app.post('/DELETERicetta', async (req, res) => {
 	await db.removeSingleRecepit(Name);
 	const allRic = await db.getAllRicette();
 	res.json(allRic);
-});
+}); // ricetta
 
 app.post('/ricet', async (req, res) => { 
 	try {
@@ -119,12 +118,12 @@ app.post('/ricet', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}
-});
+}); //allRic
 
-app.post('/men', async (req, res) => {
+app.post('/men', async (req, res) => { 
 	const allMen = await db.getAllMenu();
 	res.json(allMen);
-});
+}); //menu 
 
 app.post('/pian', async (req, res) => {
 	try {
@@ -139,9 +138,9 @@ app.post('/pian', async (req, res) => {
 		console.error("Errore nel recupero del menu:", err);
 		res.status(500).json({ message: err.message });
 	}
-});
+}); // piano
 
-app.post('/Nmenu', async (req, res) => {
+app.post('/Nmenu', async (req, res) => { 
 	try {
 		const nome = req.body.Name || 'Menu Generato';
 		const temperaturaScelta = req.body.Temperatura;
@@ -155,7 +154,7 @@ app.post('/Nmenu', async (req, res) => {
 		console.error("Errore nella creazione menu:", err);
 		res.status(500).json({ "error": "Impossibile creare il menu" });
 	}
-});
+}); // menu
 
 app.post('/genSett', async (req, res) => {
 	try {
@@ -169,7 +168,7 @@ app.post('/genSett', async (req, res) => {
 		console.error("Errore nella creazione menu:", err);
 		res.status(500).json({ "error": "Impossibile creare il menu" });
 	}
-});
+}); //piano
 
 app.post('/Nricetta', async (req, res) => {
 	try {
@@ -184,7 +183,7 @@ app.post('/Nricetta', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-});
+}); // allRic
 
 app.post('/MODricetta', async (req, res) => {
 	try {
@@ -200,7 +199,7 @@ app.post('/MODricetta', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-});
+}); // ricetta
 
 app.post('/NricettaJSN', async (req, res) => {
 	try {
@@ -210,11 +209,11 @@ app.post('/NricettaJSN', async (req, res) => {
 		const orario = req.body.Orario;
 		console.log("aspetto " + nome);
 		await db.insertRicetta(nome, ingredienti, temperatura, orario);
-		res.status(200);
+		res.status(200).send("OK");
 	} catch (err) {
 		res.status(500).json({ "results": "none" });
 	}
-});
+}); // allric
 
 app.post('/caricaSettimana', async (req, res) => {
 	try {
@@ -222,26 +221,24 @@ app.post('/caricaSettimana', async (req, res) => {
 		const idd = req.body.idd;
 		console.log("aspetto carico settimana");
 		await db.insertSettimana(giorni, idd);
-		res.status(200).send("OK");;
+		res.status(200).send("OK");
 	} catch (err) {
 		res.status(500).json({ "results": "none" });
 	}
-});
-
+}); // piano
 
 app.post('/NomeIngr', async (req, res) => { 
 	const id = req.body.Id; 
 	const ingred = await db.getIngredienteID(id);
 	res.json(ingred);
-});
+}); // ricetta /piano /allRice
 
 app.post('/NomeRic', async (req, res) => {
 	const id = req.body.Id;
-	const ricet = await db.getRicettaID(id);
+	const ricet = await db._getRicettaId(id); // aaaa cambiato
 	console.log("carico: " + ricet);
 	res.json(ricet);
-});
-
+}); // ricetta
 
 app.post('/DELETETUTTOric', async (req, res) => { 
 	try {
@@ -251,7 +248,7 @@ app.post('/DELETETUTTOric', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-})
+}) // allRic
 
 app.post('/CleanRic', async (req, res) => {
 	try {
@@ -261,24 +258,34 @@ app.post('/CleanRic', async (req, res) => {
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-});
+}); // allRic
+
+app.post('/MenuID', async (req, res) => {
+	try {
+		const id = req.body.id;
+		const menu = await db.getMenuID(id);
+		res.json(menu);
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+}); // piano
+
 app.post('/DELETETUTTOmen', async (req, res) => { 
 	try {
 		await db.RimuoviTuttoMen();
-		const allMen = await db.getAllMenu();
+		const allMen = await db.getAllMenu(); 
 			res.json(allMen); 
 	} catch (err) {
 		res.status(500).json({"results": "none"});
 	}
-});
+}); // menu
 
 app.post('/DELETEingFROMrec', async (req, res) => {
 	const Name = req.body.Name;
 	const Id = req.body.Id;
 	const ric = await db.removeIngRecepit(Name, Id);
 	res.json(ric);
-});
-
+}); // ricetta
 
 app.use((req, res) => { 
 	res.status(404).send(`<h2>Uh Oh!</h2><p>Sorry ${req.url} cannot be found here</p>`); 

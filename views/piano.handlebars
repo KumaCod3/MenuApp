@@ -42,7 +42,7 @@
 			const response = await fetch("/pian", fetchConfigData);
 			if (response.ok) {
 				const mens = await response.json();
-				titolo = mens.Menu;
+				titolo = await cercaNomeMenu(mens.Menu);
 				menuu = mens;
 				var div = document.getElementById("intestazione");
 				div.innerHTML = div.innerHTML.replace("Name", `${titolo} - ${mens.Name} `);
@@ -261,6 +261,29 @@
 		return arrayFinale;
 	}
 
+	async function cercaNomeMenu(idMen) {
+		try {
+
+			const recipeData = {
+				id: idMen
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/MenuID", fetchConfigData);
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log("Dati ricevuti dal server:", data);
+				return data.Name;
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	}
 	// LoadMenu
 	const btnLoad = document.getElementById('LoadMenu');
 	const fileInput = document.createElement('input');

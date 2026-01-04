@@ -91,7 +91,7 @@
 			const response = await fetch("/men", fetchConfigData);
 			if (response.ok) {
 				const mens = await response.json();
-				loadTableWithMenus((mens));
+				loadTableWithMenus(mens);
 			} else {
 				console.log("Error with the response data");
 			}
