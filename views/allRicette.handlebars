@@ -1,34 +1,8 @@
-<a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
-<a href="/ingredienti" class="btn btn-secondary mb-3">Gestisci Ingredienti</a>
-<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTE LE RICETTE</BUTTON>
+<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTE LE RICETTE</button>
 <button id="CleanButton" class="btn btn-primary mb-3">Pulisci TUTTE LE RICETTE</button>
 <button id="loadJSON" class="btn btn-secondary mb-3">Carica JSON</button>
 <button id="dwnJSON" class="btn btn-secondary mb-3">Scarica JSON</button>
 <h2 class="display-4">Le Ricette</h2>
-<table id="legendTable" class="table table-bordered table-hover"> 
-	<thead> 
-		<th>Nome</th><th>Ingredienti</th><th>Stagione</th><th>Pasto</th>
-	</thead> 
-		<tbody>
-		{{#each legends}} 
-			<tr> 
-				<td> 
-					{{this/Name}}
-				</td> 
-				<td> 
-					{{this/Ingredienti}} 
-				</td>  
-				<td> 
-					{{this/Temperatura}}
-				</td>
-				<td> 
-					{{this/Orario}}
-				</td>			
-			</tr> 
-		{{/each}} 
-		</tbody>
-</table>
-
 <h3 class="display-5">Aggiungi nuova ricetta:</h3>
 <form id="newRecipeForm">
 	<div class="form-group">
@@ -83,8 +57,37 @@
 			</div>
 		</div>
 	</div>
-		<button id="submitButton" class="btn btn-primary">Aggiungi</button>
+	<button id="submitButton" class="btn btn-primary">Aggiungi</button>
 </form>
+<hr/>
+<table id="legendTable" class="table table-bordered table-hover">
+	<thead>
+	<th>Nome</th>
+	<th>Ingredienti</th>
+	<th>Stagione</th>
+	<th>Pasto</th>
+	</thead>
+	<tbody>
+		{{#each legends}}
+		<tr>
+			<td>
+				{{this/Name}}
+			</td>
+			<td>
+				{{this/Ingredienti}}
+			</td>
+			<td>
+				{{this/Temperatura}}
+			</td>
+			<td>
+				{{this/Orario}}
+			</td>
+		</tr>
+		{{/each}}
+	</tbody>
+</table>
+
+
 <script>
 	document.addEventListener("DOMContentLoaded", (event) => {
 		populateIngredientsDropdown(); // Nuova funzione per caricare gli ingredienti nel <select>
@@ -96,183 +99,183 @@
 		addIngredienteButton.addEventListener("click", addIngrediente);
 	});
 
-const ingredientiMap = {};
+	const ingredientiMap = {};
 
-async function populateIngredientsDropdown() {
-	try {
-		const response = await fetch('/ingred');
-		if (response.ok) {
-			const ingredienti = await response.json();
-			const dataList = document.getElementById("lista-ingredienti");
+	async function populateIngredientsDropdown() {
+		try {
+			const response = await fetch('/ingred');
+			if (response.ok) {
+				const ingredienti = await response.json();
+				const dataList = document.getElementById("lista-ingredienti");
 
-			ingredienti.forEach(ingrediente => {
-				const option = document.createElement("option");
-				option.value = ingrediente.Name; 
-				dataList.appendChild(option);
-				
-				ingredientiMap[ingrediente.Name] = ingrediente._id;
-			});
-		} else {
-			console.log("Errore nel caricamento degli ingredienti.");
+				ingredienti.forEach(ingrediente => {
+					const option = document.createElement("option");
+					option.value = ingrediente.Name;
+					dataList.appendChild(option);
+
+					ingredientiMap[ingrediente.Name] = ingrediente._id;
+				});
+			} else {
+				console.log("Errore nel caricamento degli ingredienti.");
+			}
+		} catch (err) {
+			console.log(`Errore nel fetch degli ingredienti: ${err}`);
 		}
-	} catch (err) {
-		console.log(`Errore nel fetch degli ingredienti: ${err}`);
 	}
-}
 
-function addIngrediente() {
-	const container = document.getElementById("ingredienti-container");
-	const newIngredientInput = document.createElement("div");
-	newIngredientInput.classList.add("ingredient-input");
-   
-	newIngredientInput.innerHTML = // "";
-	`
+	function addIngrediente() {
+		const container = document.getElementById("ingredienti-container");
+		const newIngredientInput = document.createElement("div");
+		newIngredientInput.classList.add("ingredient-input");
+
+		newIngredientInput.innerHTML = // "";
+			`
 		<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
 		<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
 	`;
-	
-	container.appendChild(newIngredientInput);
-	
-	newIngredientInput.querySelector(".remove-ingrediente").addEventListener("click", () => {
-		container.removeChild(newIngredientInput);
-		updateHiddenInput(); 
-	});
-}
 
-function updateHiddenInput() {
-	const hiddenInput = document.getElementById("Ingredienti");
-	const ingredientInputs = document.querySelectorAll(".ingredient-input input");
-	
-	const ingredientValues = Array.from(ingredientInputs).map(input => input.value).filter(val => val);
-	hiddenInput.value = ingredientValues.join(",");
-}
+		container.appendChild(newIngredientInput);
 
-
-function loadTableListeners() {
-	const rows = document.querySelectorAll("#legendTable tbody tr");
-	rows.forEach(row => {
-		row.addEventListener("click", () => {
-			const ricettaId = row.dataset.id; 
-			console.log("clicco: " + row.dataset.id);
-			if (ricettaId) {
-				//window.location.href = `/menu/${ricettaId}`; // Naviga alla pagina di quel menu
-				console.log("apro ricetta: " + ricettaId);
-				window.location.href = `/ricetta/${ricettaId}`;
-			} else {
-				console.error("ID ricetta non trovato sulla riga.");
-			}
+		newIngredientInput.querySelector(".remove-ingrediente").addEventListener("click", () => {
+			container.removeChild(newIngredientInput);
+			updateHiddenInput();
 		});
-	});
-}
-
-
-//dwnJSON
-document.getElementById("dwnJSON").addEventListener("click", async (e) => {
-	e.preventDefault();
-
-	try {
-		const recipeData = {
-			Name: 'pino',
-		};
-		const fetchConfigData = {
-			method: "POST",
-			body: JSON.stringify(recipeData),
-			headers: { "Content-Type": "application/json" }
-		};
-		const response = await fetch("/ricet", fetchConfigData);
-		if (!response.ok) {
-			throw new Error(`Errore server: ${response.status}`);
-		}
-		const data = await response.json();
-		const jsonString = JSON.stringify(data, null, 2);
-		const blob = new Blob([jsonString], { type: "application/json" });
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		const date = new Date().toISOString().split('T')[0];
-		link.download = `ricette_backup_${date}.json`;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
-
-	} catch (err) {
-		console.error("Errore durante il download:", err);
-		alert("Impossibile scaricare il file JSON: " + err.message);
 	}
-});
 
+	function updateHiddenInput() {
+		const hiddenInput = document.getElementById("Ingredienti");
+		const ingredientInputs = document.querySelectorAll(".ingredient-input input");
 
-// loadJSON
-
-const btnLoad = document.getElementById('loadJSON');
-
-const fileInput = document.createElement('input');
-fileInput.type = 'file';
-fileInput.accept = '.json'; 
-
-btnLoad.addEventListener('click', () => {
-	fileInput.click();
-});
-
-fileInput.addEventListener('change', (event) => {
-	const file = event.target.files[0];
-
-	if (file) {
-		caricaJSON(file);
+		const ingredientValues = Array.from(ingredientInputs).map(input => input.value).filter(val => val);
+		hiddenInput.value = ingredientValues.join(",");
 	}
-});
 
-async function caricaJSON(file) {
-	const testo = await file.text();
-	const data = JSON.parse(testo);
-	const listaRicette = Array.isArray(data) ? data : (data.ricette || []);
 
-	for (let i = 0; i < listaRicette.length; i++) {
-		const ricetta = listaRicette[i];
+	function loadTableListeners() {
+		const rows = document.querySelectorAll("#legendTable tbody tr");
+		rows.forEach(row => {
+			row.addEventListener("click", () => {
+				const ricettaId = row.dataset.id;
+				console.log("clicco: " + row.dataset.id);
+				if (ricettaId) {
+					//window.location.href = `/menu/${ricettaId}`; // Naviga alla pagina di quel menu
+					console.log("apro ricetta: " + ricettaId);
+					window.location.href = `/ricetta/${ricettaId}`;
+				} else {
+					console.error("ID ricetta non trovato sulla riga.");
+				}
+			});
+		});
+	}
 
-		console.log(`--> Elaborazione elemento ${i} SU ${listaRicette.length}:`, JSON.stringify(ricetta));
 
-		const recipeData = {
-			Name: ricetta.Name,
-			Ingredienti: ricetta.Ingredienti,
-			Temperatura: ricetta.Temperatura,
-			Orario: ricetta.Orario,
-			Note: ricetta.Note || ""
-		};
-
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 1000);
-
-		const fetchConfigData = {
-			method: "POST",
-			body: JSON.stringify(recipeData),
-			headers: { "Content-Type": "application/json" },
-			signal: controller.signal
-		};
+	//dwnJSON
+	document.getElementById("dwnJSON").addEventListener("click", async (e) => {
+		e.preventDefault();
 
 		try {
-			const response = await fetch("/NricettaJSN", fetchConfigData);
-			clearTimeout(timeoutId);
-
+			const recipeData = {
+				Name: 'pino',
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/ricet", fetchConfigData);
 			if (!response.ok) {
-				console.error(`Errore Server (Elem ${i}): ${response.status}`);
-			} else {
-				console.log(`Elemento ${i} caricato!`);
+				throw new Error(`Errore server: ${response.status}`);
 			}
+			const data = await response.json();
+			const jsonString = JSON.stringify(data, null, 2);
+			const blob = new Blob([jsonString], { type: "application/json" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			const date = new Date().toISOString().split('T')[0];
+			link.download = `ricette_backup_${date}.json`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
 
 		} catch (err) {
-			if (err.name === 'AbortError') {
-				console.error(`Timeout: Il server non ha risposto in tempo per l'elemento ${i}`);
-			} else {
-				console.error(` Errore Generico (Elem ${i}):`, err);
+			console.error("Errore durante il download:", err);
+			alert("Impossibile scaricare il file JSON: " + err.message);
+		}
+	});
+
+
+	// loadJSON
+
+	const btnLoad = document.getElementById('loadJSON');
+
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = '.json';
+
+	btnLoad.addEventListener('click', () => {
+		fileInput.click();
+	});
+
+	fileInput.addEventListener('change', (event) => {
+		const file = event.target.files[0];
+
+		if (file) {
+			caricaJSON(file);
+		}
+	});
+
+	async function caricaJSON(file) {
+		const testo = await file.text();
+		const data = JSON.parse(testo);
+		const listaRicette = Array.isArray(data) ? data : (data.ricette || []);
+
+		for (let i = 0; i < listaRicette.length; i++) {
+			const ricetta = listaRicette[i];
+
+			console.log(`--> Elaborazione elemento ${i} SU ${listaRicette.length}:`, JSON.stringify(ricetta));
+
+			const recipeData = {
+				Name: ricetta.Name,
+				Ingredienti: ricetta.Ingredienti,
+				Temperatura: ricetta.Temperatura,
+				Orario: ricetta.Orario,
+				Note: ricetta.Note || ""
+			};
+
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 1000);
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" },
+				signal: controller.signal
+			};
+
+			try {
+				const response = await fetch("/NricettaJSN", fetchConfigData);
+				clearTimeout(timeoutId);
+
+				if (!response.ok) {
+					console.error(`Errore Server (Elem ${i}): ${response.status}`);
+				} else {
+					console.log(`Elemento ${i} caricato!`);
+				}
+
+			} catch (err) {
+				if (err.name === 'AbortError') {
+					console.error(`Timeout: Il server non ha risposto in tempo per l'elemento ${i}`);
+				} else {
+					console.error(` Errore Generico (Elem ${i}):`, err);
+				}
 			}
 		}
 	}
-}
 
-// CleanButton
-document.getElementById("CleanButton").addEventListener("click", async (e) => {
+	// CleanButton
+	document.getElementById("CleanButton").addEventListener("click", async (e) => {
 		e.preventDefault();
 
 		try {
@@ -299,189 +302,189 @@ document.getElementById("CleanButton").addEventListener("click", async (e) => {
 		}
 	});
 
-// DROPButton
-document.getElementById("DROPButton").addEventListener("click", async (e) => {
-	e.preventDefault();
+	// DROPButton
+	document.getElementById("DROPButton").addEventListener("click", async (e) => {
+		e.preventDefault();
 
-	try {
-		const recipeData = {
-			Name: "ciao",
-		};
-		const fetchConfigData = {
-			method: "POST",
-			body: JSON.stringify(recipeData),
-			headers: { "Content-Type": "application/json" }
-		};
-		console.log("config data: " + fetchConfigData.body);
-		
-		// Endpoint per eliminare tutte le ricette
-		const response = await fetch("/DELETETUTTOric", fetchConfigData);
-		if (response.ok) {
-			const recipes = await response.json();
-			loadTableWithRecipes(recipes);
-		} else {
-			console.log("Error with the response data");
+		try {
+			const recipeData = {
+				Name: "ciao",
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			console.log("config data: " + fetchConfigData.body);
+
+			// Endpoint per eliminare tutte le ricette
+			const response = await fetch("/DELETETUTTOric", fetchConfigData);
+			if (response.ok) {
+				const recipes = await response.json();
+				loadTableWithRecipes(recipes);
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
 		}
-	} catch (err) {
-		console.log(`Error: ${err}`);
-	}
-});
+	});
 
-// Listener per l'invio del form della nuova ricetta
-document.getElementById("submitButton").addEventListener("click", async (e) => {
-	e.preventDefault();
+	// Listener per l'invio del form della nuova ricetta
+	document.getElementById("submitButton").addEventListener("click", async (e) => {
+		e.preventDefault();
 
-	try {
-		const Name = document.getElementById("Name").value;
+		try {
+			const Name = document.getElementById("Name").value;
 
-		// Ottieni tutti gli input degli ingredienti
-		const hiddenInputs = document.querySelectorAll(".ingredient-input input"); 
-		const ingredienti = Array.from(hiddenInputs).map(input => {
-			const ingredienteNome = input.value;
-			const ingredienteId = ingredientiMap[ingredienteNome];
+			// Ottieni tutti gli input degli ingredienti
+			const hiddenInputs = document.querySelectorAll(".ingredient-input input");
+			const ingredienti = Array.from(hiddenInputs).map(input => {
+				const ingredienteNome = input.value;
+				const ingredienteId = ingredientiMap[ingredienteNome];
 
-			// Se l'ingrediente non esiste, usa il nome; altrimenti usa l'ID
-			return ingredienteId ? ingredienteId : ingredienteNome;
-		});
+				// Se l'ingrediente non esiste, usa il nome; altrimenti usa l'ID
+				return ingredienteId ? ingredienteId : ingredienteNome;
+			});
 
-		console.log(Array.from(hiddenInputs));
-		const Temperatura1 = document.getElementById("Temperatura1").checked;
-		const Temperatura2 = document.getElementById("Temperatura2").checked;
-		const Orario1 = document.getElementById("Orario1").checked;
-		const Orario2 = document.getElementById("Orario2").checked;
-		const Orario = (Orario1?1:0)+(Orario2?2:0);
-		const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
-		const prova = document.getElementById("inProva").checked;
-		console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
-		const recipeData = {
-			Name: Name,
-			Ingredienti: ingredienti,
-			Temperatura: Temperatura,
-			Orario: Orario,
-			Prova: prova
-		};
-		console.log(JSON.stringify(recipeData));
+			console.log(Array.from(hiddenInputs));
+			const Temperatura1 = document.getElementById("Temperatura1").checked;
+			const Temperatura2 = document.getElementById("Temperatura2").checked;
+			const Orario1 = document.getElementById("Orario1").checked;
+			const Orario2 = document.getElementById("Orario2").checked;
+			const Orario = (Orario1 ? 1 : 0) + (Orario2 ? 2 : 0);
+			const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
+			const prova = document.getElementById("inProva").checked;
+			console.log("t1= " + Temperatura1 + " T2: " + Temperatura2 + " Tot: " + Temperatura);
+			const recipeData = {
+				Name: Name,
+				Ingredienti: ingredienti,
+				Temperatura: Temperatura,
+				Orario: Orario,
+				Prova: prova
+			};
+			console.log(JSON.stringify(recipeData));
 
-		const fetchConfigData = {
-			method: "POST",
-			body: JSON.stringify(recipeData),
-			headers: { "Content-Type": "application/json" }
-		};
-		console.log("config data: " + fetchConfigData.body);
-		
-		// Endpoint per creare una nuova ricetta
-		const response = await fetch("/Nricetta", fetchConfigData);
-		if (response.ok) {
-			const recipes = await response.json();
-			loadTableWithRecipes(recipes);
-		} else {
-			console.log("Error with the response data");
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			console.log("config data: " + fetchConfigData.body);
+
+			// Endpoint per creare una nuova ricetta
+			const response = await fetch("/Nricetta", fetchConfigData);
+			if (response.ok) {
+				const recipes = await response.json();
+				loadTableWithRecipes(recipes);
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
 		}
-	} catch (err) {
-		console.log(`Error: ${err}`);
-	}
-});
+	});
 
-async function caricaTavola(){
-	try {
-		const recipeData = {
-			Name: 'pino',
-		};
-		const fetchConfigData = {
-			method: "POST",
-			body: JSON.stringify(recipeData),
-			headers: { "Content-Type": "application/json" }
-		};
-		const response = await fetch("/ricet", fetchConfigData);
-		if(response.ok) {
-			const recipes = await response.json();
-			loadTableWithRecipes((recipes)); 
-		} else {
-			console.log("Error with the response data");
+	async function caricaTavola() {
+		try {
+			const recipeData = {
+				Name: 'pino',
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/ricet", fetchConfigData);
+			if (response.ok) {
+				const recipes = await response.json();
+				loadTableWithRecipes((recipes));
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
 		}
-	} catch (err) {
-		console.log(`Error: ${err}`);
-	}
-}
-
-async function loadTableWithRecipes(recipes) {
-	const tableBody = document.querySelector("#legendTable tbody");
-	tableBody.innerHTML = ""; // Clear the table
-
-	for (const ricetta of recipes) {
-		const tr = document.createElement("tr");
-		tr.dataset.id = ricetta._id;
-		tr.style.cursor = "pointer";
-
-		tr.classList.remove("cols-red", "cols-black");
-		tr.classList.add(ricetta.Prova ? "cols-red" : "cols-black");
-
-
-		const nameTd = document.createElement("td");
-		nameTd.textContent = ricetta.Name;
-
-		const ingredienteTd = document.createElement("td"); 
-		const ingredientNames = await getIngNames(ricetta.Ingredienti);
-		ingredienteTd.textContent = ingredientNames.join(", "); 
-
-		const temperaturaTd = document.createElement("td");
-		switch (ricetta.Temperatura) {
-			case 1:
-				temperaturaTd.textContent = 'Estate';
-				break;
-			case 2:
-				temperaturaTd.textContent = 'Inverno';
-				break;
-			default:
-				temperaturaTd.textContent = 'OgniStagione';
-		}
-		const orarioTd = document.createElement("td");
-		switch (ricetta.Orario) {
-			case 1:
-				orarioTd.textContent = 'Pranzo';
-				break;
-			case 2:
-				orarioTd.textContent = 'Cena';
-				break;
-			default:
-				orarioTd.textContent = 'OgniOra';
-		}
-
-		tr.appendChild(nameTd);
-		tr.appendChild(ingredienteTd);
-		tr.appendChild(temperaturaTd);
-		tr.appendChild(orarioTd);
-			
-		tableBody.appendChild(tr);
 	}
 
-	loadTableListeners();
-	document.getElementById("newRecipeForm").reset();
-}
+	async function loadTableWithRecipes(recipes) {
+		const tableBody = document.querySelector("#legendTable tbody");
+		tableBody.innerHTML = ""; // Clear the table
 
-async function getIngNames(ingredientIds) {
-	let ingredArray=[];
-	for (let i=0; i<ingredientIds.length;i++){
-		const ingData = {
+		for (const ricetta of recipes) {
+			const tr = document.createElement("tr");
+			tr.dataset.id = ricetta._id;
+			tr.style.cursor = "pointer";
+
+			tr.classList.remove("cols-red", "cols-black");
+			tr.classList.add(ricetta.Prova ? "cols-red" : "cols-black");
+
+
+			const nameTd = document.createElement("td");
+			nameTd.textContent = ricetta.Name;
+
+			const ingredienteTd = document.createElement("td");
+			const ingredientNames = await getIngNames(ricetta.Ingredienti);
+			ingredienteTd.textContent = ingredientNames.join(", ");
+
+			const temperaturaTd = document.createElement("td");
+			switch (ricetta.Temperatura) {
+				case 1:
+					temperaturaTd.textContent = 'Estate';
+					break;
+				case 2:
+					temperaturaTd.textContent = 'Inverno';
+					break;
+				default:
+					temperaturaTd.textContent = 'OgniStagione';
+			}
+			const orarioTd = document.createElement("td");
+			switch (ricetta.Orario) {
+				case 1:
+					orarioTd.textContent = 'Pranzo';
+					break;
+				case 2:
+					orarioTd.textContent = 'Cena';
+					break;
+				default:
+					orarioTd.textContent = 'OgniOra';
+			}
+
+			tr.appendChild(nameTd);
+			tr.appendChild(ingredienteTd);
+			tr.appendChild(temperaturaTd);
+			tr.appendChild(orarioTd);
+
+			tableBody.appendChild(tr);
+		}
+
+		loadTableListeners();
+		document.getElementById("newRecipeForm").reset();
+	}
+
+	async function getIngNames(ingredientIds) {
+		let ingredArray = [];
+		for (let i = 0; i < ingredientIds.length; i++) {
+			const ingData = {
 				Id: ingredientIds[i],
 			};
-		const fetchConfigData = {
+			const fetchConfigData = {
 				method: "POST",
 				body: JSON.stringify(ingData),
 				headers: { "Content-Type": "application/json" }
 			};
-		const response = await fetch("/NomeIngr", fetchConfigData);
-		if (response.ok) {
-			const ingrediente = await response.json();
-			let nm = 'noName';
-			if (ingrediente!=null){
-				ingredArray.push(ingrediente.Name);
+			const response = await fetch("/NomeIngr", fetchConfigData);
+			if (response.ok) {
+				const ingrediente = await response.json();
+				let nm = 'noName';
+				if (ingrediente != null) {
+					ingredArray.push(ingrediente.Name);
+				}
+			} else {
+				console.log("Error with the response data");
 			}
-		} else {
-console.log("Error with the response data");
 		}
+		return ingredArray;
 	}
-	return ingredArray;
-}
 
 </script>

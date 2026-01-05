@@ -1,4 +1,4 @@
-.cs-legend-footer { 
+.cs-footer { 
     text-align: center;  
     font-size: 10px 
 }
@@ -9,4 +9,39 @@
 
 .cols-black {
 	color: black !important;
+}
+.container-custom {
+	width: 70%;
+	max-width: 2400px;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+.sidebar-viewport {
+	position: sticky;
+	top: 20px;
+	height: calc(100vh - 40px);
+	overflow-y: auto;
+}
+
+.full-height-box {
+	height: 98%;
+	display: flex;
+	flex-direction: column;
+}
+
+.sticky-top {
+	top: 20px;
+	z-index: 1000;
+}
+
+hr.hrB {
+	width: 100%;
+	opacity: 1;
+	border: 0;
+	border-top: 3px solid #17a2b8;
+	margin-left: 0;
+	margin-right: 0;
 }

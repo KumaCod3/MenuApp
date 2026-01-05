@@ -163,25 +163,45 @@ class DBmenu {
 		return ingredienti;
 	} // noooo
 
-	async insertSettimana(giorni, id) {
+	async insertSettimana(giorni, id, idMen) {
 		try {
 			let ricetteNuove = [];
 			const giorniProcessati = [];
 
 			const nomiGiorni = [
-				"Lunedì", "Martedì", "Mercoledì", 'Giovedì', "Venerdì", "Sabato", "Domenica"
+				"1", "2", "3", '4', "5", "6", "7","prova"
 			];
 
-			for (let i = 0; i < 7;i++) {
-				const g = giorni[i];
-				const pranzoId = await this._getRicettaId(g.Pranzo);
-				const cenaId = await this._getRicettaId(g.Cena);
+			for (let i = 0; i < nomiGiorni.length; i++) {
+				let pranzoId = null;
+				let cenaId = null;
+				try {
+					const g = giorni[i];
+				
+					pranzoId = await this._getRicettaId(g.Pranzo);
+					cenaId = await this._getRicettaId(g.Cena);
 
-				if (pranzoId == null) {
-					ricetteNuove.push(g.Pranzo);
-				}
-				if (cenaId == null) {
-					ricetteNuove.push(g.Cena);
+					await Ricetta.findByIdAndUpdate(
+						pranzoId,
+						{ $addToSet: { Menus: idMen } }, // Aggiunge solo se unico
+						{ new: true }
+					);
+					await Ricetta.findByIdAndUpdate(
+						cenaId,
+						{ $addToSet: { Menus: idMen } }, // Aggiunge solo se unico
+						{ new: true }
+					);
+					
+
+
+					if (pranzoId == null) {
+						ricetteNuove.push(g.Pranzo);
+					}
+					if (cenaId == null) {
+						ricetteNuove.push(g.Cena);
+					}
+				} catch (err) {
+
 				}
 
 				giorniProcessati.push({
@@ -343,8 +363,7 @@ class DBmenu {
 
 		// Lista dei nomi per popolare il campo 'Nome'
 		const nomiSettimana = [
-			'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì',
-			'Venerdì', 'Sabato', 'Domenica'
+			"1", "2", "3", '4', "5", "6", "7", "prova"
 		];
 
 		for (let i = 0; i < 4; i++) {
@@ -395,7 +414,7 @@ class DBmenu {
 			}
 
 			const giorniSettimana = [
-				"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"
+				"1", "2", "3", '4', "5", "6", "7", "prova"
 			];
 
 			const idRicetteUsateInQuestaSettimana = new Set();
@@ -593,7 +612,7 @@ class DBmenu {
 		try {
 			menus = await Menu.find()
 				.populate('Settimane')
-				.lean(); // forse da togliere
+				.lean();
 		} catch (err) {
 			console.error('C\'è stato un problema con l\'estrazione delle settimane:', err);
 			throw err;

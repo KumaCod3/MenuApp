@@ -34,7 +34,6 @@ console.log(allRic);
 app.get('/menu', async (req, res) => { 
 	try {
 	const menu = await db.getAllMenu();
-console.log(menu);
 	res.render('menu', {menu: menu});
   } catch (err) {
 	res.status(500).json({ message: err.message });
@@ -120,9 +119,14 @@ app.post('/ricet', async (req, res) => {
 	}
 }); //allRic
 
-app.post('/men', async (req, res) => { 
-	const allMen = await db.getAllMenu();
-	res.json(allMen);
+app.post('/men', async (req, res) => {
+	try {
+		const allMen = await db.getAllMenu();
+		res.json(allMen);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ message: err.message });
+	}
 }); //menu 
 
 app.post('/pian', async (req, res) => {
@@ -219,8 +223,9 @@ app.post('/caricaSettimana', async (req, res) => {
 	try {
 		const giorni = req.body.Giorni || 'noIngred';
 		const idd = req.body.idd;
-		console.log("aspetto carico settimana");
-		await db.insertSettimana(giorni, idd);
+		const idMen = req.body.menID;
+		console.log("Id menu " + idMen);
+		await db.insertSettimana(giorni, idd, idMen);
 		res.status(200).send("OK");
 	} catch (err) {
 		res.status(500).json({ "results": "none" });
@@ -235,7 +240,7 @@ app.post('/NomeIngr', async (req, res) => {
 
 app.post('/NomeRic', async (req, res) => {
 	const id = req.body.Id;
-	const ricet = await db._getRicettaId(id); // aaaa cambiato
+	const ricet = await db._getRicettaId(id); 
 	console.log("carico: " + ricet);
 	res.json(ricet);
 }); // ricetta

@@ -1,19 +1,42 @@
-<a href="/menu" class="btn btn-primary mb-3">Vai ai Menu</a>
-<a href="/ricette" class="btn btn-secondary mb-3">Vai alle Ricette</a>
-<a href="/ingredienti" class="btn btn-secondary mb-3">Vai agli Ingredienti</a>
-<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
-<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
-<button id="LoadMenu" class="btn btn-primary mb-3">Carica Menu</button>
-<h2 class="display-4">Ecco il tuo menu</h2>
-<p>
-	<h3 id="intestazione">Name per l'Temperatura</h3>
-</p>
+<div class="container-fluid container-wide">
+	<div class="row">
+		<div class="col-md-8">
 
-<div id="contenitoreMenu">
-</div>
-<div id="contenitoreLista">
-</div>
+			<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
+			<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
+			<button id="LoadMenu" class="btn btn-primary mb-3">Carica Menu</button>
+			<h2 class="display-4">Ecco il tuo menu</h2>
+			<p>
+				<h3 id="intestazione">Name per l'Temperatura</h3>
+			</p>
 
+			<div id="contenitoreMenu">
+			</div>
+			<div id="contenitoreLista">
+			</div>
+
+		</div>
+		<div class="col-md-4">
+			<div class="sticky-top pt-4 sidebar-viewport">
+			<div class="p-3 border bg-light rounded full-height-box">
+				<h2>Ricette da Usare</h2>
+				<hr class="hrB">
+				<p>
+					Qui puoi inserire il nuovo contenuto che volevi affiancare.<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+
+
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
 
 <script>
 	var id = "";
@@ -25,6 +48,7 @@
 	});
 	var titolo = "";
 	var name = "";
+	var idMenu = "";
 	var menuu = "";
 	var thisSettiamana = {};
 
@@ -61,7 +85,7 @@
 				}
 
 				div.innerHTML = div.innerHTML.replace("Temperatura", temper);
-				loadTableWithMenus((mens));
+				loadTableWithMenus(mens);
 			} else {
 				console.log("Error with the response data");
 			}
@@ -76,7 +100,7 @@
 
 		try {
 			const recipeData = {
-				settimana:thisSettiamana
+				settimana: thisSettiamana
 			};
 			const fetchConfigData = {
 				method: "POST",
@@ -104,7 +128,7 @@
 			var listaNomi = [];
 			if (data.Giorni && Array.isArray(data.Giorni)) {
 				data.Giorni.forEach(giorno => {
-					if (giorno.Pranzo && giorno.Pranzo.Name) { 
+					if (giorno.Pranzo && giorno.Pranzo.Name) {
 						giorno.Pranzo.Ingredienti.forEach(ingred => {
 							lista.push(ingred);
 						});
@@ -119,7 +143,7 @@
 
 
 
-			for (var i = 0; i < lista.length; i++){
+			for (var i = 0; i < lista.length; i++) {
 				const ingred = lista[i];
 				const recipeData = {
 					Id: ingred
@@ -177,42 +201,35 @@
 		const renderRecipeCell = (nome, id, tipo) => {
 			if (!id || nome === '-') return `<td>${nome}</td>`;
 			return `
-		<td onclick="gestisciClick('${id}', '${tipo}')" 
-			style="cursor: pointer; color: #007bff; text-decoration: underline;">
-			${nome}
-		</td>`;
+				<td onclick="gestisciClick('${id}', '${tipo}')"
+					style="cursor: pointer; color: #007bff; text-decoration: underline;">
+					${nome}
+				</td>`;
 		};
 
 		return `
-	<div class="card mb-3">
-		<div class="card-header bg-info text-white">
-			<h5 class="my-0">${nomeGiorno}</h5> 
-		</div>
-		<div class="card-body p-0">
-			<table class="table table-bordered mb-0">
-				<thead>
-					<tr>
-						<th style="width: 10%">Pasto</th>
-						<th style="width: 25%">Ricetta</th>
-						<th style="width: 65%">Note</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td class="fw-bold">Pranzo</td>
-						${renderRecipeCell(nomePranzo, idPranzo, 'PRANZO')}
-						<td><small class="text-muted">${notaPranzo}</small></td>
-					</tr>
-					<tr>
-						<td class="fw-bold">Cena</td>
-						${renderRecipeCell(nomeCena, idCena, 'CENA')}
-						<td><small class="text-muted">${notaCena}</small></td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
-	`;
+					<div class="card mb-3">
+						<div class="card-header bg-info text-white">
+							<h5 class="my-0">${nomeGiorno}</h5>
+						</div>
+						<div class="card-body p-0">
+							<table class="table table-bordered mb-0">
+								<tbody>
+									<tr>
+										<td class="fw-bold" style="width: 10%">Pranzo</td>
+										${renderRecipeCell(nomePranzo, idPranzo, 'PRANZO')}
+										<td style="width: 65%"><small class="text-muted">${notaPranzo}</small></td>
+									</tr>
+									<tr>
+										<td class="fw-bold" style="width: 10%">Cena</td>
+										${renderRecipeCell(nomeCena, idCena, 'CENA')}
+										<td style="width: 65%"><small class="text-muted">${notaCena}</small></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					`;
 	}
 
 	function gestisciClick(id, tipo) {
@@ -234,8 +251,8 @@
 			container.innerHTML = "<p>Nessun Ingrediente.</p>";
 			return;
 		}
-		 dati.forEach(ingred => {
-			 container.innerHTML += `<p> ${ingred} </p>`;
+		dati.forEach(ingred => {
+			container.innerHTML += `<p> ${ingred} </p>`;
 		});
 	}
 
@@ -277,6 +294,7 @@
 			if (response.ok) {
 				const data = await response.json();
 				console.log("Dati ricevuti dal server:", data);
+				idMenu = data._id;
 				return data.Name;
 			}
 		} catch (err) {
@@ -301,19 +319,17 @@
 	async function elaboraSettimana(file) {
 		const testo = await file.text();
 
-		const nomeSettimana = name;
-		const tempSettimana = thisSettiamana.Temperatura;
-
 		const righe = testo.split('\n').map(r => r.trim()).filter(r => r !== "");
 		let giorniArray = [];
 
 		let giornoCorrente = null;
 		let ii = 0;
 		righe.forEach(riga => {
+			console.log("analizzo "+riga);
 			// Se la riga è solo un numero, inizia un nuovo giorno
 			if (!isNaN(riga)) {
 				if (giornoCorrente) giorniArray.push(giornoCorrente);
-				giornoCorrente = {Pranzo: "", Cena: "" };
+				giornoCorrente = { Pranzo: "", Cena: "" };
 				ii++;
 			}
 			else if (riga.toLowerCase().startsWith("pranzo:")) {
@@ -324,10 +340,11 @@
 			}
 		});
 		if (giornoCorrente) giorniArray.push(giornoCorrente);
-
+		console.log("finito " + giorniArray);
 		const payload = {
 			Giorni: giorniArray,
-			idd: id
+			idd: id,
+			menID: idMenu
 		};
 
 		console.log("Dati pronti per l'invio:", payload);
@@ -335,18 +352,18 @@
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-		try {
-			const response = await fetch("/caricaSettimana", {
-				method: "POST",
-				body: JSON.stringify(payload),
-				headers: { "Content-Type": "application/json" },
-				signal: controller.signal
-			});
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(payload),
+			headers: { "Content-Type": "application/json" }
+		};
 
+		try {
+			const response = await fetch("/caricaSettimana", fetchConfigData);
 			clearTimeout(timeoutId);
 
 			if (response.ok) {
-		//		window.location.href = '/menu';
+				window.location.href = '/menu';
 			} else {
 				const errorData = await response.json();
 				console.error("Errore Server:", errorData);
