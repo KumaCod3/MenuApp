@@ -21,17 +21,12 @@
 			<div class="p-3 border bg-light rounded full-height-box">
 				<h2>Ricette da Usare</h2>
 				<hr class="hrB">
-				<p>
+				<div id="sidecar">
 					Qui puoi inserire il nuovo contenuto che volevi affiancare.<br /><br />
 					bla bla..<br /><br />
-					bla bla..<br /><br />
-					bla bla..<br /><br />
-					bla bla..<br /><br />
-					bla bla..<br /><br />
-					bla bla..<br /><br />
 
 
-				</p>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -44,7 +39,10 @@
 		const url = window.location.pathname;
 		const segments = url.split('/');
 		id = segments.pop();
+		console.log("EEEEE carico id menu: " + id);
 		caricaTavola(id);
+
+
 	});
 	var titolo = "";
 	var name = "";
@@ -67,6 +65,7 @@
 			if (response.ok) {
 				const mens = await response.json();
 				titolo = await cercaNomeMenu(mens.Menu);
+				caricaPitStop(mens.Menu);
 				menuu = mens;
 				var div = document.getElementById("intestazione");
 				div.innerHTML = div.innerHTML.replace("Name", `${titolo} - ${mens.Name} `);
@@ -92,144 +91,6 @@
 		} catch (err) {
 			console.log(`Error: ${err}`);
 		}
-	}
-
-	// genMENU
-	document.getElementById("genMENU").addEventListener("click", async (e) => {
-		e.preventDefault();
-
-		try {
-			const recipeData = {
-				settimana: thisSettiamana
-			};
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(recipeData),
-				headers: { "Content-Type": "application/json" }
-			};
-			const response = await fetch("/genSett", fetchConfigData);
-			if (response.ok) {
-				caricaTavola(id);
-
-			}
-		} catch (err) {
-			console.error("Errore durante il download:", err);
-			alert("Impossibile generare menu: " + err.message);
-		}
-	});
-
-	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
-		e.preventDefault();
-
-		try {
-			console.log("giorni: " + menuu);
-			const data = menuu;
-			var lista = [];
-			var listaNomi = [];
-			if (data.Giorni && Array.isArray(data.Giorni)) {
-				data.Giorni.forEach(giorno => {
-					if (giorno.Pranzo && giorno.Pranzo.Name) {
-						giorno.Pranzo.Ingredienti.forEach(ingred => {
-							lista.push(ingred);
-						});
-					}
-					if (giorno.Cena && giorno.Cena.Name) {
-						giorno.Cena.Ingredienti.forEach(ingred => {
-							lista.push(ingred);
-						});
-					}
-				});
-			}
-
-
-
-			for (var i = 0; i < lista.length; i++) {
-				const ingred = lista[i];
-				const recipeData = {
-					Id: ingred
-				};
-				const fetchConfigData = {
-					method: "POST",
-					body: JSON.stringify(recipeData),
-					headers: { "Content-Type": "application/json" }
-				};
-				const response = await fetch("/NomeIngr", fetchConfigData);
-				if (response.ok) {
-					const ojIng = await response.json();
-					listaNomi.push(ojIng.Name);
-				}
-			}
-
-			const listaConta = contaRipetizioni(listaNomi);
-			popolaLista(listaConta);
-
-		} catch (err) {
-			console.error("Errore durante il download:", err);
-			alert("Impossibile scaricare il file TXT: " + err.message);
-		}
-	});
-
-	function loadTableWithMenus(menu) {
-		const container = document.getElementById("contenitoreMenu");
-		container.innerHTML = "";
-		const listaGiorni = menu.Giorni || [];
-		if (listaGiorni.length === 0) {
-			container.innerHTML = "<p>Nessun giorno pianificato.</p>";
-			return;
-		}
-
-		listaGiorni.forEach(giorno => {
-			container.innerHTML += getTabellaView(giorno);
-		});
-	}
-
-
-	function getTabellaView(dati) {
-		// Estraiamo i dati per il Pranzo
-		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
-		const idPranzo = dati.Pranzo ? dati.Pranzo.Id : null;
-		const notaPranzo = dati.Pranzo ? (dati.Pranzo.Note || 'n') : ''; // Recupero nota
-
-		// Estraiamo i dati per la Cena
-		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
-		const idCena = dati.Cena ? dati.Cena.Id : null;
-		const notaCena = dati.Cena ? (dati.Cena.Note || '') : ''; // Recupero nota
-
-		const nomeGiorno = dati.Nome || 'Giorno';
-
-		// Funzione di utilità per renderizzare la cella cliccabile del nome ricetta
-		const renderRecipeCell = (nome, id, tipo) => {
-			if (!id || nome === '-') return `<td>${nome}</td>`;
-			return `
-				<td onclick="gestisciClick('${id}', '${tipo}')"
-					style="cursor: pointer; color: #007bff; text-decoration: underline;">
-					${nome}
-				</td>`;
-		};
-
-		return `
-					<div class="card mb-3">
-						<div class="card-header bg-info text-white">
-							<h5 class="my-0">${nomeGiorno}</h5>
-						</div>
-						<div class="card-body p-0">
-							<table class="table table-bordered mb-0">
-								<tbody>
-									<tr>
-										<td class="fw-bold" style="width: 10%">Pranzo</td>
-										${renderRecipeCell(nomePranzo, idPranzo, 'PRANZO')}
-										<td style="width: 65%"><small class="text-muted">${notaPranzo}</small></td>
-									</tr>
-									<tr>
-										<td class="fw-bold" style="width: 10%">Cena</td>
-										${renderRecipeCell(nomeCena, idCena, 'CENA')}
-										<td style="width: 65%"><small class="text-muted">${notaCena}</small></td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-					`;
 	}
 
 	function gestisciClick(id, tipo) {
@@ -302,6 +163,29 @@
 			alert("Impossibile generare menu: " + err.message);
 		}
 	}
+
+	async function caricaPitStop(idMen) {
+		try {
+			const recipeData = {
+				id: idMen
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/PitstopID", fetchConfigData);
+
+			if (response.ok) {
+				const data = await response.json();
+				loadSideWithRicette(data);
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	}
+
 	// LoadMenu
 	const btnLoad = document.getElementById('LoadMenu');
 	const fileInput = document.createElement('input');
@@ -325,7 +209,7 @@
 		let giornoCorrente = null;
 		let ii = 0;
 		righe.forEach(riga => {
-			console.log("analizzo "+riga);
+			console.log("analizzo " + riga);
 			// Se la riga è solo un numero, inizia un nuovo giorno
 			if (!isNaN(riga)) {
 				if (giornoCorrente) giorniArray.push(giornoCorrente);
@@ -377,5 +261,312 @@
 				console.error("Errore Generico:", err);
 			}
 		}
+	}
+
+
+	// genMENU
+	document.getElementById("genMENU").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			const recipeData = {
+				settimana: thisSettiamana
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/genSett", fetchConfigData);
+			if (response.ok) {
+				console.log("AAAA carico id menu: " + id);
+				caricaTavola(id);
+
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	});
+
+	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			console.log("giorni: " + menuu);
+			const data = menuu;
+			var lista = [];
+			var listaNomi = [];
+			if (data.Giorni && Array.isArray(data.Giorni)) {
+				data.Giorni.forEach(giorno => {
+					if (giorno.Pranzo && giorno.Pranzo.Name) {
+						giorno.Pranzo.Ingredienti.forEach(ingred => {
+							lista.push(ingred);
+						});
+					}
+					if (giorno.Cena && giorno.Cena.Name) {
+						giorno.Cena.Ingredienti.forEach(ingred => {
+							lista.push(ingred);
+						});
+					}
+				});
+			}
+
+
+
+			for (var i = 0; i < lista.length; i++) {
+				const ingred = lista[i];
+				const recipeData = {
+					Id: ingred
+				};
+				const fetchConfigData = {
+					method: "POST",
+					body: JSON.stringify(recipeData),
+					headers: { "Content-Type": "application/json" }
+				};
+				const response = await fetch("/NomeIngr", fetchConfigData);
+				if (response.ok) {
+					const ojIng = await response.json();
+					listaNomi.push(ojIng.Name);
+				}
+			}
+
+			const listaConta = contaRipetizioni(listaNomi);
+			popolaLista(listaConta);
+
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile scaricare il file TXT: " + err.message);
+		}
+	});
+
+	function loadTableWithMenus(menu) {
+		const container = document.getElementById("contenitoreMenu");
+		container.innerHTML = "";
+		const listaGiorni = menu.Giorni || [];
+		if (listaGiorni.length === 0) {
+			container.innerHTML = "<p>Nessun giorno pianificato.</p>";
+			return;
+		}
+
+		listaGiorni.forEach(giorno => {
+			console.log(" giorno: " + JSON.stringify(giorno));
+			container.innerHTML += getTabellaView(giorno);
+		});
+	}
+
+
+
+	function getTabellaView(dati) {
+		const nomeGiorno = dati.Nome || 'Giorno';
+
+		const renderRecipeCell = (ricetta, tipo) => {
+			const id = ricetta?.Id || ricetta?.id || ricetta?._id;
+			const nome = ricetta?.Name || ricetta?.name;
+			const orario = ricetta?.Orario ?? ricetta?.orario ?? 0; // Default a 0
+
+			const haRicetta = id && nome && nome !== '-';
+
+			if (haRicetta) {
+				const classeColore = getColoreBadge(orario);
+
+				return `
+		<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
+			<div class="recipe-slot">
+				<span class="badge ${classeColore} p-2 badge-recipe" 
+					  draggable="true" 
+					  id="tabrecipe-${id}"
+					  data-id="${id}" 
+					  data-name="${nome.replace(/'/g, "\\'")}"
+					  data-orario="${orario}"
+					  ondragstart="iniziaDragDallaTabella(event, '${id}', '${nome.replace(/'/g, "\\'")}', '${orario}')">
+					${nome}
+				</span>
+			</div>
+		</td>`;
+			} else {
+				return `
+		<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
+			<div class="recipe-slot">
+				<small class="text-muted">Trascina qui...</small>
+			</div>
+		</td>`;
+			}
+		};
+
+		return `
+	<div class="card mb-3">
+		<div class="card-header bg-info text-white">
+			<h5 class="my-0">${nomeGiorno}</h5>
+		</div>
+		<div class="card-body p-0">
+			<table class="table table-bordered mb-0">
+				<tbody>
+					<tr>
+						<td class="fw-bold" style="width: 15%">Pranzo</td>
+						${renderRecipeCell(dati.Pranzo, 'PRANZO')}
+						<td style="width: 55%"><small class="text-muted">${dati.Pranzo?.Note || dati.Pranzo?.note || ''}</small></td>
+					</tr>
+					<tr>
+						<td class="fw-bold" style="width: 15%">Cena</td>
+						${renderRecipeCell(dati.Cena, 'CENA')}
+						<td style="width: 55%"><small class="text-muted">${dati.Cena?.Note || dati.Cena?.note || ''}</small></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>`;
+	}
+
+	const sidecar = document.getElementById("sidecar");
+
+	function creaElementoRicettaSidebar(id, nome, orario) {
+		const item = document.createElement("div");
+
+		// Determina il colore
+		const classeColore = getColoreBadge(orario);
+
+		item.className = `draggable-recipe btn btn-sm ${classeColore} m-1`;
+		item.draggable = true;
+		item.innerText = nome;
+		item.id = `sidebar-item-${id}-${Date.now()}`;
+
+		item.addEventListener("dragstart", (e) => {
+			elementoTrascinato = item;
+			const payload = {
+				id,
+				name: nome,
+				orario: orario, // Salviamo l'orario nel payload
+				origin: 'sidebar'
+			};
+			e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+		});
+
+		return item;
+	}
+
+	function loadSideWithRicette(data) {
+		const container = document.getElementById("sidecar");
+		container.innerHTML = "";
+		data.forEach(ricetta => {
+			container.appendChild(creaElementoRicettaSidebar(ricetta.Id, ricetta.Name, ricetta.Orario));
+		});
+	}
+
+	function allowDrop(e) {
+		e.preventDefault();
+		e.currentTarget.classList.add("drag-over");
+	}
+
+	function clearDropStyle(e) {
+		e.currentTarget.classList.remove("drag-over");
+	}
+
+	function gestisciDropTabella(e) {
+		e.preventDefault();
+		const target = e.currentTarget;
+		target.classList.remove("drag-over");
+
+		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+		const slot = target.querySelector(".recipe-slot") || target;
+
+		// 1. GESTIONE SOSTITUZIONE (Torna in sidebar)
+		const badgeEsistente = slot.querySelector(".badge-recipe");
+		if (badgeEsistente) {
+			const oldId = badgeEsistente.getAttribute("data-id");
+			const oldName = badgeEsistente.getAttribute("data-name");
+			const oldOrario = badgeEsistente.getAttribute("data-orario");
+
+			// Torna in sidebar con il suo colore originale
+			const ricettaDaSpostare = creaElementoRicettaSidebar(oldId, oldName, oldOrario);
+			document.getElementById("sidecar").appendChild(ricettaDaSpostare);
+		}
+
+		// 2. RIMOZIONE ELEMENTO TRASCINATO
+		if (elementoTrascinato) {
+			elementoTrascinato.remove();
+			elementoTrascinato = null;
+		}
+
+		// 3. INSERIMENTO NUOVA RICETTA (Con il colore basato su orario)
+		const classeColoreNuovo = getColoreBadge(data.orario);
+		slot.innerHTML = `
+		<span class="badge ${classeColoreNuovo} p-2 badge-recipe" 
+			  draggable="true" 
+			  data-id="${data.id}" 
+			  data-name="${data.name}"
+			  data-orario="${data.orario}"
+			  ondragstart="iniziaDragDallaTabella(event, '${data.id}', '${data.name.replace(/'/g, "\\'")}', '${data.orario}')">
+			${data.name}
+		</span>`;
+	}
+
+	function gestisciDrop(e) {
+		e.preventDefault();
+		const target = e.currentTarget;
+		target.classList.remove("drag-over");
+
+		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+		// Se proviene dalla sidebar, rimuoviamo l'elemento fisico dalla lista laterale
+		if (data.origin === 'sidebar') {
+			const original = document.getElementById(data.elementId);
+			if (original) original.remove();
+		}
+
+		// Inseriamo il badge nella tabella
+		const slot = target.querySelector(".recipe-slot") || target;
+		const recipeId = `tabrecipe-${data.id}`;
+
+		slot.innerHTML = `
+		<span class="badge bg-primary p-2 badge-recipe" 
+			  draggable="true" 
+			  id="${recipeId}"
+			  ondragstart="iniziaDragDallaTabella(event, '${data.id}', '${data.name}')">
+			${data.name}
+		</span>`;
+	}
+
+
+	function iniziaDragDallaTabella(e, id, nome) {
+		elementoTrascinato = e.target; // Salviamo il badge che stiamo muovendo
+
+		const payload = {
+			id: id,
+			name: nome,
+			origin: 'table'
+		};
+		e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+
+		// Opzionale: aggiungiamo una classe per feedback visivo
+		e.target.classList.add("opacity-50");
+	}
+
+
+	sidecar.ondragover = (e) => e.preventDefault();
+
+	sidecar.ondrop = (e) => {
+		e.preventDefault();
+		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+		if (data.origin === 'table' && elementoTrascinato) {
+			// Rimuoviamo il badge dalla tabella usando il riferimento salvato
+			const cella = elementoTrascinato.parentElement;
+			elementoTrascinato.remove();
+			if (cella) cella.innerHTML = '<small class="text-muted">Vuoto</small>';
+
+			// Ricreiamo l'elemento in sidebar
+			const nuovaRicetta = creaElementoRicettaSidebar(data.id, data.name);
+			sidecar.appendChild(nuovaRicetta);
+
+			elementoTrascinato = null;
+		}
+	};
+
+	function getColoreBadge(orario) {
+		const val = parseInt(orario);
+		if (val === 1) return "bg-warning text-dark"; // Giallo
+		if (val === 2) return "bg-primary";           // Blu
+		return "bg-success";                          // Verde (0, 3 o altro)
 	}
 </script>

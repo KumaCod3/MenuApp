@@ -275,6 +275,16 @@ app.post('/MenuID', async (req, res) => {
 	}
 }); // piano
 
+app.post('/PitstopID', async (req, res) => {
+	try {
+		const id = req.body.id;
+		const menu = await db.getPitstopID(id);
+		res.json(menu);
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+}); // piano
+
 app.post('/DELETETUTTOmen', async (req, res) => { 
 	try {
 		await db.RimuoviTuttoMen();

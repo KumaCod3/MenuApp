@@ -1,0 +1,418 @@
+<div class="container-fluid container-wide">
+	<div class="row">
+		<div class="col-md-8">
+
+			<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
+			<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
+			<button id="LoadMenu" class="btn btn-primary mb-3">Carica Menu</button>
+			<h2 class="display-4">Ecco il tuo menu</h2>
+			<p>
+				<h3 id="intestazione">Name per l'Temperatura</h3>
+			</p>
+
+			<div id="contenitoreMenu">
+			</div>
+			<div id="contenitoreLista">
+			</div>
+
+		</div>
+		<div class="col-md-4">
+			<div class="sticky-top pt-4 sidebar-viewport">
+			<div class="p-3 border bg-light rounded full-height-box">
+				<h2>Ricette da Usare</h2>
+				<hr class="hrB">
+				<div id="sidecar">
+					Qui puoi inserire il nuovo contenuto che volevi affiancare.<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+					bla bla..<br /><br />
+
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+<script>
+	var id = "";
+	document.addEventListener("DOMContentLoaded", (event) => {
+		const url = window.location.pathname;
+		const segments = url.split('/');
+		id = segments.pop();
+		caricaTavola(id);
+	});
+	var titolo = "";
+	var name = "";
+	var idMenu = "";
+	var menuu = "";
+	var thisSettiamana = {};
+
+	async function caricaTavola(id) {
+		try {
+
+			const recipeData = {
+				_id: id,
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/pian", fetchConfigData);
+			if (response.ok) {
+				const mens = await response.json();
+				titolo = await cercaNomeMenu(mens.Menu);
+				caricaPitStop(mens.Menu);
+				menuu = mens;
+				var div = document.getElementById("intestazione");
+				div.innerHTML = div.innerHTML.replace("Name", `${titolo} - ${mens.Name} `);
+				var temper = "";
+				name = mens.Name;
+				thisSettiamana = mens;
+				switch (mens.Temperatura) {
+					case 1:
+						temper = 'Estate';
+						break;
+					case 2:
+						temper = 'Inverno';
+						break;
+					default:
+						temper = 'OgniStagione';
+				}
+
+				div.innerHTML = div.innerHTML.replace("Temperatura", temper);
+				loadTableWithMenus(mens);
+			} else {
+				console.log("Error with the response data");
+			}
+		} catch (err) {
+			console.log(`Error: ${err}`);
+		}
+	}
+
+	// genMENU
+	document.getElementById("genMENU").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			const recipeData = {
+				settimana: thisSettiamana
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/genSett", fetchConfigData);
+			if (response.ok) {
+				caricaTavola(id);
+
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	});
+
+	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			console.log("giorni: " + menuu);
+			const data = menuu;
+			var lista = [];
+			var listaNomi = [];
+			if (data.Giorni && Array.isArray(data.Giorni)) {
+				data.Giorni.forEach(giorno => {
+					if (giorno.Pranzo && giorno.Pranzo.Name) {
+						giorno.Pranzo.Ingredienti.forEach(ingred => {
+							lista.push(ingred);
+						});
+					}
+					if (giorno.Cena && giorno.Cena.Name) {
+						giorno.Cena.Ingredienti.forEach(ingred => {
+							lista.push(ingred);
+						});
+					}
+				});
+			}
+
+
+
+			for (var i = 0; i < lista.length; i++) {
+				const ingred = lista[i];
+				const recipeData = {
+					Id: ingred
+				};
+				const fetchConfigData = {
+					method: "POST",
+					body: JSON.stringify(recipeData),
+					headers: { "Content-Type": "application/json" }
+				};
+				const response = await fetch("/NomeIngr", fetchConfigData);
+				if (response.ok) {
+					const ojIng = await response.json();
+					listaNomi.push(ojIng.Name);
+				}
+			}
+
+			const listaConta = contaRipetizioni(listaNomi);
+			popolaLista(listaConta);
+
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile scaricare il file TXT: " + err.message);
+		}
+	});
+
+	function loadTableWithMenus(menu) {
+		const container = document.getElementById("contenitoreMenu");
+		container.innerHTML = "";
+		const listaGiorni = menu.Giorni || [];
+		if (listaGiorni.length === 0) {
+			container.innerHTML = "<p>Nessun giorno pianificato.</p>";
+			return;
+		}
+
+		listaGiorni.forEach(giorno => {
+			container.innerHTML += getTabellaView(giorno);
+		});
+	}
+
+	function loadSideWithRicette(data) {
+		const container = document.getElementById("sidecar");
+		container.innerHTML = "";
+		if (data.length === 0) {
+			container.innerHTML = "<p>Nessuna ricetta Libera.</p>";
+			return;
+		}
+
+		data.forEach(ricetta => {
+			container.innerHTML += ` - ${ricetta.Name} <br/>`;
+		});
+	}
+
+
+	function getTabellaView(dati) {
+		// Estraiamo i dati per il Pranzo
+		const nomePranzo = dati.Pranzo ? dati.Pranzo.Name : '-';
+		const idPranzo = dati.Pranzo ? dati.Pranzo.Id : null;
+		const notaPranzo = dati.Pranzo ? (dati.Pranzo.Note || 'n') : ''; // Recupero nota
+
+		// Estraiamo i dati per la Cena
+		const nomeCena = dati.Cena ? dati.Cena.Name : '-';
+		const idCena = dati.Cena ? dati.Cena.Id : null;
+		const notaCena = dati.Cena ? (dati.Cena.Note || '') : ''; // Recupero nota
+
+		const nomeGiorno = dati.Nome || 'Giorno';
+
+		// Funzione di utilità per renderizzare la cella cliccabile del nome ricetta
+		const renderRecipeCell = (nome, id, tipo) => {
+			if (!id || nome === '-') return `<td>${nome}</td>`;
+			return `
+				<td onclick="gestisciClick('${id}', '${tipo}')"
+					style="cursor: pointer; color: #007bff; text-decoration: underline;">
+					${nome}
+				</td>`;
+		};
+
+		return `
+					<div class="card mb-3">
+						<div class="card-header bg-info text-white">
+							<h5 class="my-0">${nomeGiorno}</h5>
+						</div>
+						<div class="card-body p-0">
+							<table class="table table-bordered mb-0">
+								<tbody>
+									<tr>
+										<td class="fw-bold" style="width: 10%">Pranzo</td>
+										${renderRecipeCell(nomePranzo, idPranzo, 'PRANZO')}
+										<td style="width: 65%"><small class="text-muted">${notaPranzo}</small></td>
+									</tr>
+									<tr>
+										<td class="fw-bold" style="width: 10%">Cena</td>
+										${renderRecipeCell(nomeCena, idCena, 'CENA')}
+										<td style="width: 65%"><small class="text-muted">${notaCena}</small></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					`;
+	}
+
+	function gestisciClick(id, tipo) {
+		console.log("Hai cliccato su:", tipo, "con ID:", id);
+
+		// Esempio di logica differenziata
+		if (tipo === 'PRANZO') {
+			alert("Dettagli Pranzo ID: " + id);
+			// Qui potresti chiamare una API o aprire un form
+		} else {
+			alert("Dettagli Cena ID: " + id);
+		}
+	}
+
+	function popolaLista(dati) {
+		const container = document.getElementById("contenitoreLista");
+		container.innerHTML = "";
+		if (dati.length === 0) {
+			container.innerHTML = "<p>Nessun Ingrediente.</p>";
+			return;
+		}
+		dati.forEach(ingred => {
+			container.innerHTML += `<p> ${ingred} </p>`;
+		});
+	}
+
+	function contaRipetizioni(arrayIniziale) {
+		const conteggio = {};
+
+		// Conta le ripetizioni
+		arrayIniziale.forEach(str => {
+			conteggio[str] = (conteggio[str] || 0) + 1;
+		});
+
+		const arrayFinale = [];
+
+		// Crea l'array finale
+		for (const [str, count] of Object.entries(conteggio)) {
+			if (count > 1) {
+				arrayFinale.push(`${count} ${str}`);
+			} else {
+				arrayFinale.push(str);
+			}
+		}
+
+		return arrayFinale;
+	}
+
+	async function cercaNomeMenu(idMen) {
+		try {
+
+			const recipeData = {
+				id: idMen
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/MenuID", fetchConfigData);
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log("Dati ricevuti dal server:", data);
+				idMenu = data._id;
+				return data.Name;
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	}
+
+	async function caricaPitStop(idMen){
+		try {
+			const recipeData = {
+				id: idMen
+			};
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(recipeData),
+				headers: { "Content-Type": "application/json" }
+			};
+			const response = await fetch("/PitstopID", fetchConfigData);
+
+			if (response.ok) {
+				const data = await response.json();
+				loadSideWithRicette(data);
+			}
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	}
+
+	// LoadMenu
+	const btnLoad = document.getElementById('LoadMenu');
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = '.txt';
+	btnLoad.addEventListener('click', () => {
+		fileInput.click();
+	});
+	fileInput.addEventListener('change', (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			elaboraSettimana(file);
+		}
+	});
+	async function elaboraSettimana(file) {
+		const testo = await file.text();
+
+		const righe = testo.split('\n').map(r => r.trim()).filter(r => r !== "");
+		let giorniArray = [];
+
+		let giornoCorrente = null;
+		let ii = 0;
+		righe.forEach(riga => {
+			console.log("analizzo "+riga);
+			// Se la riga è solo un numero, inizia un nuovo giorno
+			if (!isNaN(riga)) {
+				if (giornoCorrente) giorniArray.push(giornoCorrente);
+				giornoCorrente = { Pranzo: "", Cena: "" };
+				ii++;
+			}
+			else if (riga.toLowerCase().startsWith("pranzo:")) {
+				giornoCorrente.Pranzo = riga.replace(/pranzo:/i, "").trim();
+			}
+			else if (riga.toLowerCase().startsWith("cena:")) {
+				giornoCorrente.Cena = riga.replace(/cena:/i, "").trim();
+			}
+		});
+		if (giornoCorrente) giorniArray.push(giornoCorrente);
+		console.log("finito " + giorniArray);
+		const payload = {
+			Giorni: giorniArray,
+			idd: id,
+			menID: idMenu
+		};
+
+		console.log("Dati pronti per l'invio:", payload);
+
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(payload),
+			headers: { "Content-Type": "application/json" }
+		};
+
+		try {
+			const response = await fetch("/caricaSettimana", fetchConfigData);
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+				window.location.href = '/menu';
+			} else {
+				const errorData = await response.json();
+				console.error("Errore Server:", errorData);
+				alert("Errore durante il caricamento.");
+			}
+
+		} catch (err) {
+			if (err.name === 'AbortError') {
+				console.error("Timeout: Il server non ha risposto.");
+			} else {
+				console.error("Errore Generico:", err);
+			}
+		}
+	}
+</script>

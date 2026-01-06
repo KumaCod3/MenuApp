@@ -594,18 +594,6 @@ class DBmenu {
 			throw err;
 		}
 	} // /DELETEingFROMrec
-/*
-	async getRicettaID(_id) {
-		let ricetta = null;
-		try {
-			ricetta = await Ricetta.findById(_id);
-		} catch (err) {
-			console.error('C\'è stato un problema nel trovare la ricetta:', err);
-			throw err;
-		}
-		return ricetta;
-	} // /ricetta/:id
-*/
 
 	async getAllMenu() {
 		let menus = [];
@@ -656,6 +644,20 @@ class DBmenu {
 		}
 		return menu;
 	} // /MenuID
+
+	async getPitstopID(_id) {
+		let RicetteFree = [];
+		try {
+			RicetteFree = await Ricetta.find({
+				Menus: { $ne: _id }
+			});
+			console.log('Ricette libere trovate per ID: ', RicetteFree);
+		} catch (err) {
+			console.error('C\'è stato un problema nel trovare le ricette libere:', err);
+			throw err;
+		}
+		return RicetteFree;
+	} // /PitstopID
 
 	async getSettID(_id) {
 		let settim = null;
