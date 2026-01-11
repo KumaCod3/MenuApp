@@ -181,7 +181,9 @@ app.post('/Nricetta', async (req, res) => {
 		const temperatura = req.body.Temperatura; 
 		const orario = req.body.Orario;
 		const prova = req.body.Prova;
-		await db.insertRicetta(nome, ingredienti, temperatura, orario, prova);
+		const nota = req.body.Note;
+
+		await db.insertRicetta(nome, ingredienti, temperatura, orario, prova, nota);
 		const allRic = await db.getAllRicette();
 		res.json(allRic); 
 	} catch (err) {
@@ -211,8 +213,9 @@ app.post('/NricettaJSN', async (req, res) => {
 		const ingredienti = req.body.Ingredienti || 'noIngred';
 		const temperatura = req.body.Temperatura;
 		const orario = req.body.Orario;
-		console.log("aspetto " + nome);
-		await db.insertRicetta(nome, ingredienti, temperatura, orario);
+		const nota = req.body.Note || "";
+		const prova = req.body.Prova;
+		await db.insertRicetta(nome, ingredienti, temperatura, orario, prova, nota);
 		res.status(200).send("OK");
 	} catch (err) {
 		res.status(500).json({ "results": "none" });

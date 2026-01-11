@@ -1,6 +1,6 @@
 .cs-footer { 
-    text-align: center;  
-    font-size: 10px 
+	text-align: center;  
+	font-size: 10px 
 }
 
 .cols-red {
@@ -10,6 +10,7 @@
 .cols-black {
 	color: black !important;
 }
+
 .container-custom {
 	width: 70%;
 	max-width: 2400px;
@@ -17,13 +18,6 @@
 	margin-left: auto;
 	padding-right: 15px;
 	padding-left: 15px;
-}
-
-.sidebar-viewport {
-	position: sticky;
-	top: 20px;
-	height: calc(100vh - 40px);
-	overflow-y: auto;
 }
 
 .full-height-box {
@@ -46,14 +40,13 @@ hr.hrB {
 	margin-right: 0;
 }
 
-<style >
-.draggable-recipe {
+.draggable-recipe, .badge-recipe {
 	cursor: grab;
 	display: inline-block;
 	transition: transform 0.2s;
 }
 
-.draggable-recipe:active {
+.draggable-recipe:active, .badge-recipe:active {
 	cursor: grabbing;
 }
 
@@ -63,16 +56,11 @@ hr.hrB {
 }
 
 .drop-zone {
-	border: 2 dashed #ccc !important;
+	border: 2 dashed #ccc;
 	min-height: 40px;
 	vertical-align: middle !important;
 	transition: background-color 0.3s;
 }
-
-	.drop-zone:hover {
-		background-color: #f8f9fa;
-		border-color: #007bff !important;
-	}
 
 .recipe-slot {
 	min-height: 30px;
@@ -80,41 +68,35 @@ hr.hrB {
 	align-items: center;
 	justify-content: center;
 }
-.drop-zone {
-	min-height: 50px;
-	border: 2px dashed transparent;
-	transition: all 0.2s;
+
+.drop-zone.drag-over, .drop-zone[ondragover], drag-over {
+	background-color: #e2f3ff !important;
+	border: 2px #000000 !important;
 }
 
-.drop-zone[ondragover] {
-	/* Quando qualcosa viene trascinato sopra */
-	border-color: #007bff;
-	background-color: rgba(0, 123, 255, 0.05);
+.ricetta-cena {
+	background-color: #e354e9;
 }
 
-.drop-zone {
-	min-height: 50px;
-	transition: background-color 0.2s;
+.ricetta-pranzo {
+	background-color: #99b147;
 }
 
-	.drop-zone.drag-over {
-		background-color: #e2f3ff !important;
-		border: 2px dashed #007bff !important;
-	}
-
-.draggable-recipe, .badge-recipe {
-	cursor: grab;
+.ricetta-unisex {
+	background-color: #17a2b8;
 }
 
-	.draggable-recipe:active, .badge-recipe:active {
-		cursor: grabbing;
-	}
+.ricetta-prova {
+	color: #f3ef0c;
+	font-weight: bold;
+	background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)) !important;
+	background-blend-mode: multiply;
+}
 
 #sidecar {
-	flex-grow: 1; /* Dice al div di occupare tutto lo spazio rimasto */
-	overflow-y: auto; /* Se ci sono troppe ricette, scrolla solo il sidecar */
-	min-height: 200px; /* Altezza minima opzionale */
-	/* Stile opzionale per vedere l'area di drop */
+	flex-grow: 1;
+	overflow-y: auto;
+	min-height: 200px;
 	border: 1px dashed #ccc;
 	border-radius: 4px;
 	padding: 10px;

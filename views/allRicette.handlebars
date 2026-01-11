@@ -19,7 +19,6 @@
 		<input type="hidden" name="Ingredienti" id="Ingredienti">
 	</div>
 
-
 	<div class="row mb-3">
 		<div class="col-2">
 			<div class="form-check">
@@ -57,15 +56,20 @@
 			</div>
 		</div>
 	</div>
+	<div class="form-group">
+		<label for="Nota">Nota</label>
+		<input type="text" class="form-control" name="Nota" id="Nota" required>
+	</div>
 	<button id="submitButton" class="btn btn-primary">Aggiungi</button>
 </form>
 <hr/>
 <table id="legendTable" class="table table-bordered table-hover">
 	<thead>
-	<th>Nome</th>
-	<th>Ingredienti</th>
-	<th>Stagione</th>
-	<th>Pasto</th>
+		<th>Nome</th>
+		<th>Ingredienti</th>
+		<th>Stagione</th>
+		<th>Pasto</th>
+		<th>Note</th>
 	</thead>
 	<tbody>
 		{{#each legends}}
@@ -81,6 +85,9 @@
 			</td>
 			<td>
 				{{this/Orario}}
+			</td>
+			<td>
+				{{this/Note}}
 			</td>
 		</tr>
 		{{/each}}
@@ -128,11 +135,10 @@
 		const newIngredientInput = document.createElement("div");
 		newIngredientInput.classList.add("ingredient-input");
 
-		newIngredientInput.innerHTML = // "";
-			`
-		<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-		<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
-	`;
+		newIngredientInput.innerHTML = 	`
+			<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
+			<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
+		`;
 
 		container.appendChild(newIngredientInput);
 
@@ -158,7 +164,6 @@
 				const ricettaId = row.dataset.id;
 				console.log("clicco: " + row.dataset.id);
 				if (ricettaId) {
-					//window.location.href = `/menu/${ricettaId}`; // Naviga alla pagina di quel menu
 					console.log("apro ricetta: " + ricettaId);
 					window.location.href = `/ricetta/${ricettaId}`;
 				} else {
@@ -167,7 +172,6 @@
 			});
 		});
 	}
-
 
 	//dwnJSON
 	document.getElementById("dwnJSON").addEventListener("click", async (e) => {
@@ -205,9 +209,7 @@
 		}
 	});
 
-
 	// loadJSON
-
 	const btnLoad = document.getElementById('loadJSON');
 
 	const fileInput = document.createElement('input');
@@ -235,12 +237,15 @@
 			const ricetta = listaRicette[i];
 
 			console.log(`--> Elaborazione elemento ${i} SU ${listaRicette.length}:`, JSON.stringify(ricetta));
-
+			if (!ricetta.Note) {
+				ricetta.Note = " ";
+			}
 			const recipeData = {
 				Name: ricetta.Name,
 				Ingredienti: ricetta.Ingredienti,
 				Temperatura: ricetta.Temperatura,
 				Orario: ricetta.Orario,
+				Prova: false,
 				Note: ricetta.Note || ""
 			};
 
@@ -258,10 +263,10 @@
 				const response = await fetch("/NricettaJSN", fetchConfigData);
 				clearTimeout(timeoutId);
 
-				if (!response.ok) {
-					console.error(`Errore Server (Elem ${i}): ${response.status}`);
-				} else {
+				if (response.ok) {
 					console.log(`Elemento ${i} caricato!`);
+				} else {
+					console.error(`Errore Server (Elem ${i}): ${response.status}`);
 				}
 
 			} catch (err) {
@@ -289,7 +294,6 @@
 			};
 			console.log("config data: " + fetchConfigData.body);
 
-			// Endpoint per eliminare tutte le ricette
 			const response = await fetch("/CleanRic", fetchConfigData);
 			if (response.ok) {
 				const recipes = await response.json();
@@ -317,7 +321,6 @@
 			};
 			console.log("config data: " + fetchConfigData.body);
 
-			// Endpoint per eliminare tutte le ricette
 			const response = await fetch("/DELETETUTTOric", fetchConfigData);
 			if (response.ok) {
 				const recipes = await response.json();
@@ -326,24 +329,23 @@
 				console.log("Error with the response data");
 			}
 		} catch (err) {
-			console.log(`Error: ${err}`);
+			console.error(`Error: ${err}`);
 		}
 	});
 
-	// Listener per l'invio del form della nuova ricetta
+	// AggiungiNuovaRicetta
 	document.getElementById("submitButton").addEventListener("click", async (e) => {
 		e.preventDefault();
 
 		try {
 			const Name = document.getElementById("Name").value;
+			const nota = document.getElementById("Nota").value;
 
-			// Ottieni tutti gli input degli ingredienti
 			const hiddenInputs = document.querySelectorAll(".ingredient-input input");
 			const ingredienti = Array.from(hiddenInputs).map(input => {
 				const ingredienteNome = input.value;
 				const ingredienteId = ingredientiMap[ingredienteNome];
 
-				// Se l'ingrediente non esiste, usa il nome; altrimenti usa l'ID
 				return ingredienteId ? ingredienteId : ingredienteNome;
 			});
 
@@ -361,6 +363,7 @@
 				Ingredienti: ingredienti,
 				Temperatura: Temperatura,
 				Orario: Orario,
+				Note: nota,
 				Prova: prova
 			};
 			console.log(JSON.stringify(recipeData));
@@ -372,7 +375,6 @@
 			};
 			console.log("config data: " + fetchConfigData.body);
 
-			// Endpoint per creare una nuova ricetta
 			const response = await fetch("/Nricetta", fetchConfigData);
 			if (response.ok) {
 				const recipes = await response.json();
@@ -381,7 +383,7 @@
 				console.log("Error with the response data");
 			}
 		} catch (err) {
-			console.log(`Error: ${err}`);
+			console.error(`Error: ${err}`);
 		}
 	});
 
@@ -409,9 +411,10 @@
 
 	async function loadTableWithRecipes(recipes) {
 		const tableBody = document.querySelector("#legendTable tbody");
-		tableBody.innerHTML = ""; // Clear the table
+		tableBody.innerHTML = ""; 
 
 		for (const ricetta of recipes) {
+			console.log("ricetta trovata: " + ricetta);
 			const tr = document.createElement("tr");
 			tr.dataset.id = ricetta._id;
 			tr.style.cursor = "pointer";
@@ -449,12 +452,14 @@
 				default:
 					orarioTd.textContent = 'OgniOra';
 			}
+			const noteTd = document.createElement("td");
+			noteTd.textContent = ricetta.Note;
 
 			tr.appendChild(nameTd);
 			tr.appendChild(ingredienteTd);
 			tr.appendChild(temperaturaTd);
 			tr.appendChild(orarioTd);
-
+			tr.appendChild(noteTd);
 			tableBody.appendChild(tr);
 		}
 

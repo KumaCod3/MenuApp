@@ -34,21 +34,21 @@
 </div>
 
 <script>
-	var id = "";
+
 	document.addEventListener("DOMContentLoaded", (event) => {
 		const url = window.location.pathname;
 		const segments = url.split('/');
 		id = segments.pop();
 		console.log("EEEEE carico id menu: " + id);
 		caricaTavola(id);
-
-
 	});
 	var titolo = "";
 	var name = "";
 	var idMenu = "";
 	var menuu = "";
 	var thisSettiamana = {};
+	var id = "";
+	const mappaRicette = new Map();
 
 	async function caricaTavola(id) {
 		try {
@@ -93,18 +93,7 @@
 		}
 	}
 
-	function gestisciClick(id, tipo) {
-		console.log("Hai cliccato su:", tipo, "con ID:", id);
-
-		// Esempio di logica differenziata
-		if (tipo === 'PRANZO') {
-			alert("Dettagli Pranzo ID: " + id);
-			// Qui potresti chiamare una API o aprire un form
-		} else {
-			alert("Dettagli Cena ID: " + id);
-		}
-	}
-
+	// helper DOWNLOAD
 	function popolaLista(dati) {
 		const container = document.getElementById("contenitoreLista");
 		container.innerHTML = "";
@@ -117,17 +106,14 @@
 		});
 	}
 
+	// helper DOWNLOAD
 	function contaRipetizioni(arrayIniziale) {
 		const conteggio = {};
-
-		// Conta le ripetizioni
 		arrayIniziale.forEach(str => {
 			conteggio[str] = (conteggio[str] || 0) + 1;
 		});
 
 		const arrayFinale = [];
-
-		// Crea l'array finale
 		for (const [str, count] of Object.entries(conteggio)) {
 			if (count > 1) {
 				arrayFinale.push(`${count} ${str}`);
@@ -135,10 +121,10 @@
 				arrayFinale.push(str);
 			}
 		}
-
 		return arrayFinale;
 	}
 
+	// helper caricaTavola
 	async function cercaNomeMenu(idMen) {
 		try {
 
@@ -210,7 +196,6 @@
 		let ii = 0;
 		righe.forEach(riga => {
 			console.log("analizzo " + riga);
-			// Se la riga è solo un numero, inizia un nuovo giorno
 			if (!isNaN(riga)) {
 				if (giornoCorrente) giorniArray.push(giornoCorrente);
 				giornoCorrente = { Pranzo: "", Cena: "" };
@@ -230,7 +215,6 @@
 			idd: id,
 			menID: idMenu
 		};
-
 		console.log("Dati pronti per l'invio:", payload);
 
 		const controller = new AbortController();
@@ -263,7 +247,6 @@
 		}
 	}
 
-
 	// genMENU
 	document.getElementById("genMENU").addEventListener("click", async (e) => {
 		e.preventDefault();
@@ -281,7 +264,6 @@
 			if (response.ok) {
 				console.log("AAAA carico id menu: " + id);
 				caricaTavola(id);
-
 			}
 		} catch (err) {
 			console.error("Errore durante il download:", err);
@@ -289,6 +271,7 @@
 		}
 	});
 
+	//  dwnMENU
 	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
 		e.preventDefault();
 
@@ -311,8 +294,6 @@
 					}
 				});
 			}
-
-
 
 			for (var i = 0; i < lista.length; i++) {
 				const ingred = lista[i];
@@ -350,108 +331,83 @@
 		}
 
 		listaGiorni.forEach(giorno => {
-			console.log(" giorno: " + JSON.stringify(giorno));
 			container.innerHTML += getTabellaView(giorno);
 		});
 	}
 
+	// da qui sistemare AAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	// _______________________________________________________________________________________
+	function renderRecipeCell(ricetta) {
+		const id = ricetta._id;
+		const nome = ricetta?.Name || ricetta?.name;
+		const orario = ricetta?.Orario ?? ricetta?.orario ?? 0; // Default a 0
+		const prova = ricetta?.Prova;
+		const haRicetta = id && nome && nome !== '-';
 
+		if (haRicetta) {
+			const classeColore = getColoreBadge(orario);
+			const classeProva = getColore(prova);
+			const ora = Date.now(); // Ottiene il timestamp attuale in millisecondi
+			mappaRicette.set(ricetta._id, ricetta);
+			return `<span class="badge ${classeColore} ${classeProva} m-1 badge-recipe"
+						draggable="true" 
+						id="tabrecipe-${id}-${ora}"
+						data-id="${id}" 
+						data-name="${nome.replace(/'/g, "\\'")}"
+						data-orario="${orario}"
+						ondragstart="iniziaDrag(event, '${id}', '${nome.replace(/'/g, "\\'")}', 'tabrecipe-${id}-${ora}' )">
+					${nome}
+				</span>`;
+		} else {
+			return `<small class="text-muted">Trascina qui...</small>`;
+		}
+	}
 
 	function getTabellaView(dati) {
 		const nomeGiorno = dati.Nome || 'Giorno';
 
-		const renderRecipeCell = (ricetta, tipo) => {
-			const id = ricetta?.Id || ricetta?.id || ricetta?._id;
-			const nome = ricetta?.Name || ricetta?.name;
-			const orario = ricetta?.Orario ?? ricetta?.orario ?? 0; // Default a 0
-
-			const haRicetta = id && nome && nome !== '-';
-
-			if (haRicetta) {
-				const classeColore = getColoreBadge(orario);
-
-				return `
-		<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
-			<div class="recipe-slot">
-				<span class="badge ${classeColore} p-2 badge-recipe" 
-					  draggable="true" 
-					  id="tabrecipe-${id}"
-					  data-id="${id}" 
-					  data-name="${nome.replace(/'/g, "\\'")}"
-					  data-orario="${orario}"
-					  ondragstart="iniziaDragDallaTabella(event, '${id}', '${nome.replace(/'/g, "\\'")}', '${orario}')">
-					${nome}
-				</span>
-			</div>
-		</td>`;
-			} else {
-				return `
-		<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
-			<div class="recipe-slot">
-				<small class="text-muted">Trascina qui...</small>
-			</div>
-		</td>`;
-			}
-		};
-
 		return `
-	<div class="card mb-3">
-		<div class="card-header bg-info text-white">
-			<h5 class="my-0">${nomeGiorno}</h5>
-		</div>
-		<div class="card-body p-0">
-			<table class="table table-bordered mb-0">
-				<tbody>
-					<tr>
-						<td class="fw-bold" style="width: 15%">Pranzo</td>
-						${renderRecipeCell(dati.Pranzo, 'PRANZO')}
-						<td style="width: 55%"><small class="text-muted">${dati.Pranzo?.Note || dati.Pranzo?.note || ''}</small></td>
-					</tr>
-					<tr>
-						<td class="fw-bold" style="width: 15%">Cena</td>
-						${renderRecipeCell(dati.Cena, 'CENA')}
-						<td style="width: 55%"><small class="text-muted">${dati.Cena?.Note || dati.Cena?.note || ''}</small></td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>`;
+			<div class="card mb-3">
+				<div class="card-header bg-info text-white">
+					<h5 class="my-0">${nomeGiorno}</h5>
+				</div>
+				<div class="card-body p-0">
+					<table class="table table-bordered mb-0">
+						<tbody>
+							<tr>
+								<td class="fw-bold" style="width: 15%">Pranzo</td>
+								<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
+									<div class="recipe-slot">
+										${renderRecipeCell(dati.Pranzo)}
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="fw-bold" style="width: 15%">Cena</td>
+								<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
+									<div class="recipe-slot">
+										${renderRecipeCell(dati.Cena)}
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>`;
 	}
 
 	const sidecar = document.getElementById("sidecar");
 
-	function creaElementoRicettaSidebar(id, nome, orario) {
-		const item = document.createElement("div");
-
-		// Determina il colore
-		const classeColore = getColoreBadge(orario);
-
-		item.className = `draggable-recipe btn btn-sm ${classeColore} m-1`;
-		item.draggable = true;
-		item.innerText = nome;
-		item.id = `sidebar-item-${id}-${Date.now()}`;
-
-		item.addEventListener("dragstart", (e) => {
-			elementoTrascinato = item;
-			const payload = {
-				id,
-				name: nome,
-				orario: orario, // Salviamo l'orario nel payload
-				origin: 'sidebar'
-			};
-			e.dataTransfer.setData("text/plain", JSON.stringify(payload));
-		});
-
-		return item;
-	}
-
 	function loadSideWithRicette(data) {
 		const container = document.getElementById("sidecar");
 		container.innerHTML = "";
+
 		data.forEach(ricetta => {
-			container.appendChild(creaElementoRicettaSidebar(ricetta.Id, ricetta.Name, ricetta.Orario));
+			const htmlContent = renderRecipeCell(ricetta); 
+			container.innerHTML += htmlContent;
 		});
 	}
+
 
 	function allowDrop(e) {
 		e.preventDefault();
@@ -461,7 +417,7 @@
 	function clearDropStyle(e) {
 		e.currentTarget.classList.remove("drag-over");
 	}
-
+// TODO errore dragback
 	function gestisciDropTabella(e) {
 		e.preventDefault();
 		const target = e.currentTarget;
@@ -470,75 +426,37 @@
 		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
 		const slot = target.querySelector(".recipe-slot") || target;
 
-		// 1. GESTIONE SOSTITUZIONE (Torna in sidebar)
+		// se nella tabella c'e gia ricetta, rimettila in sidecar
 		const badgeEsistente = slot.querySelector(".badge-recipe");
 		if (badgeEsistente) {
 			const oldId = badgeEsistente.getAttribute("data-id");
-			const oldName = badgeEsistente.getAttribute("data-name");
-			const oldOrario = badgeEsistente.getAttribute("data-orario");
-
-			// Torna in sidebar con il suo colore originale
-			const ricettaDaSpostare = creaElementoRicettaSidebar(oldId, oldName, oldOrario);
-			document.getElementById("sidecar").appendChild(ricettaDaSpostare);
+			const ricetta = mappaRicette.get(oldId);
+			const htmlContent = renderRecipeCell(ricetta);
+			const container = document.getElementById("sidecar");
+			container.innerHTML += htmlContent;
 		}
 
-		// 2. RIMOZIONE ELEMENTO TRASCINATO
-		if (elementoTrascinato) {
-			elementoTrascinato.remove();
-			elementoTrascinato = null;
+		// metti la tua ricetta nello slot
+		const idSpostata = data.id;
+		const ricetta = mappaRicette.get(idSpostata);
+		const htmlContent = renderRecipeCell(ricetta);
+		slot.innerHTML = htmlContent;
+		// elimina dal sidecar
+		const originElement = document.getElementById(data.oggetto);
+		if (originElement) {
+			originElement.remove();
 		}
 
-		// 3. INSERIMENTO NUOVA RICETTA (Con il colore basato su orario)
-		const classeColoreNuovo = getColoreBadge(data.orario);
-		slot.innerHTML = `
-		<span class="badge ${classeColoreNuovo} p-2 badge-recipe" 
-			  draggable="true" 
-			  data-id="${data.id}" 
-			  data-name="${data.name}"
-			  data-orario="${data.orario}"
-			  ondragstart="iniziaDragDallaTabella(event, '${data.id}', '${data.name.replace(/'/g, "\\'")}', '${data.orario}')">
-			${data.name}
-		</span>`;
 	}
 
-	function gestisciDrop(e) {
-		e.preventDefault();
-		const target = e.currentTarget;
-		target.classList.remove("drag-over");
-
-		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-
-		// Se proviene dalla sidebar, rimuoviamo l'elemento fisico dalla lista laterale
-		if (data.origin === 'sidebar') {
-			const original = document.getElementById(data.elementId);
-			if (original) original.remove();
-		}
-
-		// Inseriamo il badge nella tabella
-		const slot = target.querySelector(".recipe-slot") || target;
-		const recipeId = `tabrecipe-${data.id}`;
-
-		slot.innerHTML = `
-		<span class="badge bg-primary p-2 badge-recipe" 
-			  draggable="true" 
-			  id="${recipeId}"
-			  ondragstart="iniziaDragDallaTabella(event, '${data.id}', '${data.name}')">
-			${data.name}
-		</span>`;
-	}
-
-
-	function iniziaDragDallaTabella(e, id, nome) {
-		elementoTrascinato = e.target; // Salviamo il badge che stiamo muovendo
-
+	function iniziaDrag(e, idData, nome, id) {
 		const payload = {
-			id: id,
+			id: idData,
 			name: nome,
-			origin: 'table'
+			oggetto: id
 		};
 		e.dataTransfer.setData("text/plain", JSON.stringify(payload));
 
-		// Opzionale: aggiungiamo una classe per feedback visivo
 		e.target.classList.add("opacity-50");
 	}
 
@@ -548,25 +466,28 @@
 	sidecar.ondrop = (e) => {
 		e.preventDefault();
 		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+		if (e) {
+			const ricetta = mappaRicette.get(data.id);
+			const htmlContent = renderRecipeCell(ricetta);
+			const container = document.getElementById("sidecar");
+			container.innerHTML += htmlContent;
 
-		if (data.origin === 'table' && elementoTrascinato) {
-			// Rimuoviamo il badge dalla tabella usando il riferimento salvato
-			const cella = elementoTrascinato.parentElement;
-			elementoTrascinato.remove();
-			if (cella) cella.innerHTML = '<small class="text-muted">Vuoto</small>';
-
-			// Ricreiamo l'elemento in sidebar
-			const nuovaRicetta = creaElementoRicettaSidebar(data.id, data.name);
-			sidecar.appendChild(nuovaRicetta);
-
-			elementoTrascinato = null;
+			const originElement = document.getElementById(data.oggetto);
+			if (originElement) {
+				originElement.remove();
+			}
 		}
 	};
 
 	function getColoreBadge(orario) {
 		const val = parseInt(orario);
-		if (val === 1) return "bg-warning text-dark"; // Giallo
-		if (val === 2) return "bg-primary";           // Blu
-		return "bg-success";                          // Verde (0, 3 o altro)
+		if (val === 1) return "ricetta-pranzo";
+		if (val === 2) return "ricetta-cena";
+		return "ricetta-unisex";
+	}
+	function getColore(prova) {
+		if (prova === true) return "ricetta-prova";
+		if (prova === false) return "";
+		return "";
 	}
 </script>

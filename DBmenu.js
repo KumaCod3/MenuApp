@@ -11,7 +11,7 @@ const ricettaSchema = new mongoose.Schema({
 	Ingredienti: [{ type: mongoose.Types.ObjectId, ref: 'Ingrediente' }],
 	Temperatura: { type: Number, required: true },
 	Orario: { type: Number, required: true },
-	Note: { type: String, required: false },
+	Note: { type: String, required: true },
 	Menus: [{ type: mongoose.Types.ObjectId, ref: 'Menu' }],
 	Prova: { type: Boolean, required: true, default: false }
 });
@@ -64,13 +64,14 @@ class DBmenu {
 		let ricette = [];
 		try {
 			ricette = await Ricetta.find().lean();
+			console.log("cerco tutte ricette, trovo: " + ricette);
 		} catch (err) {
 			console.error('C\'è stato un problema con l\'estrazione delle ricette:', err);
 			throw err;
 		}
 		return ricette;
 	}// /ricette /DELETERicetta /ricet /Nricetta /DELETETUTTOric /CleanRic
-
+/*
 	async getAllRicetteJN() {
 		let ricette = [];
 		try {
@@ -81,7 +82,7 @@ class DBmenu {
 		}
 		return ricette;
 	} // noooo
-
+	*/
 	async getAllIngredienti() {
 		let ingredienti = [];
 		try {
@@ -151,7 +152,7 @@ class DBmenu {
 			throw err;
 		}
 	} // /DELETETUTTOmen
-
+/*
 	async getAllIngredientiJN() {
 		let ingredienti = [];
 		try {
@@ -162,7 +163,7 @@ class DBmenu {
 		}
 		return ingredienti;
 	} // noooo
-
+	*/
 	async insertSettimana(giorni, id, idMen) {
 		try {
 			let ricetteNuove = [];
@@ -223,7 +224,6 @@ class DBmenu {
 		}
 	} // /caricaSettimana
 
-	// Funzione helper per trovare una ricetta esistente (per ID o Nome)
 	async _getRicettaId(identificatore) {
 		let ricetta = null;
 		try {
@@ -235,7 +235,7 @@ class DBmenu {
 		return ricetta;
 	} // /NomeRic
 
-	async insertRicetta(nome, ingred, temperatura, orario, prova) {
+	async insertRicetta(nome, ingred, temperatura, orario, prova, nota) {
 		let ingredArray = [];
 		for (let i = 0; i < ingred.length; i++) {
 			const nomeGiro = ingred[i];
@@ -266,7 +266,7 @@ class DBmenu {
 					throw err;
 				}
 			}
-			ingredArray.push(ingrediente);
+			ingredArray.push(ingrediente._id);
 		}
 		try {
 			const newRicetta = new Ricetta({
@@ -274,11 +274,12 @@ class DBmenu {
 				Ingredienti: ingredArray,
 				Temperatura: temperatura,
 				Orario: orario,
+				Note: nota,
 				Prova: prova
 			});
 			await newRicetta.save();
 		} catch (err) {
-			console.error("non e un ingrediente");
+			console.error("aaaaa "+err);
 		}
 	} // /Nricetta /NricettaJSN
 
@@ -522,7 +523,7 @@ class DBmenu {
 		}
 		return newIngrediente;
 	} // /Ningrediente
-
+/*
 	async getRicetteTemp(temp) {
 		let ricette = [];
 		if (!Number.isInteger(temp)) {
@@ -570,7 +571,7 @@ class DBmenu {
 		}
 		return ricetta;
 	} // noooo
-
+*/
 	async removeIngRecepit(nome, id) {
 		try {
 			console.log("Cerco ricetta:" + nome + " con ID ingrediente:" + id);
@@ -607,7 +608,7 @@ class DBmenu {
 		}
 		return menus;
 	}
-
+/*
 	async getIngrediente(nome) {
 		let ingrediente = null;
 		console.log("Almeno ci provo UN POCHINO???");
@@ -620,7 +621,7 @@ class DBmenu {
 		}
 		return ingrediente;
 	} // noooo
-
+*/
 	async getIngredienteID(_id) {
 		let ingrediente = null;
 		try {
