@@ -38,41 +38,37 @@
 	document.addEventListener("DOMContentLoaded", (event) => {
 		const url = window.location.pathname;
 		const segments = url.split('/');
-		id = segments.pop();
-		console.log("EEEEE carico id menu: " + id);
-		caricaTavola(id);
+		idSettima = segments.pop();
+		caricaTavola(idSettima);
 	});
-	var titolo = "";
-	var name = "";
+	var titoloMenu = "";
+	var questaSettimana = "";
+	var idSettima = "";
 	var idMenu = "";
-	var menuu = "";
-	var thisSettiamana = {};
-	var id = "";
 	const mappaRicette = new Map();
 
-	async function caricaTavola(id) {
+	async function caricaTavola(idSettima) {
 		try {
-
 			const recipeData = {
-				_id: id,
+				iddi: idSettima,
 			};
 			const fetchConfigData = {
 				method: "POST",
 				body: JSON.stringify(recipeData),
 				headers: { "Content-Type": "application/json" }
 			};
-			const response = await fetch("/pian", fetchConfigData);
+			const response = await fetch("/loadSettimana", fetchConfigData);
 			if (response.ok) {
-				const mens = await response.json();
-				titolo = await cercaNomeMenu(mens.Menu);
-				caricaPitStop(mens.Menu);
-				menuu = mens;
+				const settimana = await response.json();
+				idMenu = settimana.Menu;
+				titoloMenu = await cercaNomeMenu();
+				caricaPitStop();
+				questaSettimana = settimana;
 				var div = document.getElementById("intestazione");
-				div.innerHTML = div.innerHTML.replace("Name", `${titolo} - ${mens.Name} `);
+				div.innerHTML = div.innerHTML.replace("Name", `${titoloMenu} - ${settimana.Name} `);
 				var temper = "";
-				name = mens.Name;
-				thisSettiamana = mens;
-				switch (mens.Temperatura) {
+				name = settimana.Name;
+				switch (settimana.Temperatura) {
 					case 1:
 						temper = 'Estate';
 						break;
@@ -82,9 +78,9 @@
 					default:
 						temper = 'OgniStagione';
 				}
-
 				div.innerHTML = div.innerHTML.replace("Temperatura", temper);
-				loadTableWithMenus(mens);
+				loadTableWithMenus(settimana);
+				
 			} else {
 				console.log("Error with the response data");
 			}
@@ -125,11 +121,10 @@
 	}
 
 	// helper caricaTavola
-	async function cercaNomeMenu(idMen) {
+	async function cercaNomeMenu() {
 		try {
-
 			const recipeData = {
-				id: idMen
+				id: idMenu
 			};
 			const fetchConfigData = {
 				method: "POST",
@@ -141,7 +136,6 @@
 			if (response.ok) {
 				const data = await response.json();
 				console.log("Dati ricevuti dal server:", data);
-				idMenu = data._id;
 				return data.Name;
 			}
 		} catch (err) {
@@ -150,10 +144,10 @@
 		}
 	}
 
-	async function caricaPitStop(idMen) {
+	async function caricaPitStop() {
 		try {
 			const recipeData = {
-				id: idMen
+				id: idMenu
 			};
 			const fetchConfigData = {
 				method: "POST",
@@ -212,8 +206,8 @@
 		console.log("finito " + giorniArray);
 		const payload = {
 			Giorni: giorniArray,
-			idd: id,
-			menID: idMenu
+			idd: questaSettimana._id,
+			menID: questaSettimana.Menu
 		};
 		console.log("Dati pronti per l'invio:", payload);
 
@@ -253,7 +247,7 @@
 
 		try {
 			const recipeData = {
-				settimana: thisSettiamana
+				settimana: questaSettimana
 			};
 			const fetchConfigData = {
 				method: "POST",
@@ -262,8 +256,8 @@
 			};
 			const response = await fetch("/genSett", fetchConfigData);
 			if (response.ok) {
-				console.log("AAAA carico id menu: " + id);
-				caricaTavola(id);
+				console.log("AAAA carico id menu: " + questaSettimana.Menu);
+				caricaTavola(idSettima);
 			}
 		} catch (err) {
 			console.error("Errore durante il download:", err);
@@ -276,8 +270,8 @@
 		e.preventDefault();
 
 		try {
-			console.log("giorni: " + menuu);
-			const data = menuu;
+			console.log("giorni: " + questaSettimana);
+			const data = questaSettimana;
 			var lista = [];
 			var listaNomi = [];
 			if (data.Giorni && Array.isArray(data.Giorni)) {
@@ -321,10 +315,10 @@
 		}
 	});
 
-	function loadTableWithMenus(menu) {
+	function loadTableWithMenus(settimana) {
 		const container = document.getElementById("contenitoreMenu");
 		container.innerHTML = "";
-		const listaGiorni = menu.Giorni || [];
+		const listaGiorni = settimana.Giorni || [];
 		if (listaGiorni.length === 0) {
 			container.innerHTML = "<p>Nessun giorno pianificato.</p>";
 			return;
@@ -335,10 +329,8 @@
 		});
 	}
 
-	// da qui sistemare AAAAAAAAAAAAAAAAAAAAAAAAAAAA
-	// _______________________________________________________________________________________
 	function renderRecipeCell(ricetta) {
-		const id = ricetta._id;
+		const id = ricetta?._id;
 		const nome = ricetta?.Name || ricetta?.name;
 		const orario = ricetta?.Orario ?? ricetta?.orario ?? 0; // Default a 0
 		const prova = ricetta?.Prova;
@@ -365,10 +357,9 @@
 
 	function getTabellaView(dati) {
 		const nomeGiorno = dati.Nome || 'Giorno';
-
 		return `
 			<div class="card mb-3">
-				<div class="card-header bg-info text-white">
+				<div class="card-header intesta text-white">
 					<h5 class="my-0">${nomeGiorno}</h5>
 				</div>
 				<div class="card-body p-0">
@@ -417,7 +408,7 @@
 	function clearDropStyle(e) {
 		e.currentTarget.classList.remove("drag-over");
 	}
-// TODO errore dragback
+
 	function gestisciDropTabella(e) {
 		e.preventDefault();
 		const target = e.currentTarget;
@@ -460,7 +451,6 @@
 		e.target.classList.add("opacity-50");
 	}
 
-
 	sidecar.ondragover = (e) => e.preventDefault();
 
 	sidecar.ondrop = (e) => {
@@ -490,4 +480,12 @@
 		if (prova === false) return "";
 		return "";
 	}
+
+// _____________ NUOVA PARTE _____________________
+
+
+
+
+
+
 </script>

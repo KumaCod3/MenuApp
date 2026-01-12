@@ -129,12 +129,13 @@ app.post('/men', async (req, res) => {
 	}
 }); //menu 
 
-app.post('/pian', async (req, res) => {
+app.post('/loadSettimana', async (req, res) => {
 	try {
-		const menuId = req.body._id;
-		const menuTrovato = await db.getSettID(menuId);
-		if (menuTrovato) {
-			res.json(menuTrovato);
+		const settId = req.body.iddi;
+		console.log(" In settimana cerco id: " + settId);
+		const settTrovata = await db.getSettID(settId);
+		if (settTrovata) {
+			res.json(settTrovata).send("OK");
 		} else {
 			res.status(404).json({ message: "Menu non trovato" });
 		}

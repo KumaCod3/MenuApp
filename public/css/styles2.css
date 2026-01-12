@@ -75,21 +75,25 @@ hr.hrB {
 }
 
 .ricetta-cena {
-	background-color: #e354e9;
+	background-color: #bface9;
 }
 
 .ricetta-pranzo {
-	background-color: #99b147;
+	background-color: #f2c6ed;
 }
 
 .ricetta-unisex {
-	background-color: #17a2b8;
+	background-color: #9ce8c5;
+}
+
+.intesta {
+	background-color: #a8e2e2;
 }
 
 .ricetta-prova {
-	color: #f3ef0c;
+	color: #e4e3a6;
 	font-weight: bold;
-	background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)) !important;
+	background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) !important;
 	background-blend-mode: multiply;
 }
 

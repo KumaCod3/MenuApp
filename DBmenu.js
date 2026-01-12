@@ -652,7 +652,7 @@ class DBmenu {
 			RicetteFree = await Ricetta.find({
 				Menus: { $ne: _id }
 			});
-			console.log('Ricette libere trovate per ID: ', RicetteFree);
+		//	console.log('Ricette libere trovate per ID: ', RicetteFree);
 		} catch (err) {
 			console.error('C\'è stato un problema nel trovare le ricette libere:', err);
 			throw err;
@@ -661,6 +661,7 @@ class DBmenu {
 	} // /PitstopID
 
 	async getSettID(_id) {
+		console.log(" In db cerco id: " + _id);
 		let settim = null;
 		try {
 			settim = await Settimana.findById(_id)
@@ -673,7 +674,7 @@ class DBmenu {
 		}
 		return settim;
 	} // /pian
-
+	/*
 	async getSettByMenID(_id, nSett) {
 		let menu = null;
 		try {
@@ -684,9 +685,9 @@ class DBmenu {
 			console.error('C\'è stato un problema nel trovare il menu:', err);
 			throw err;
 		}
-		return await getSettID(menu.Settimane[nSett]);
+		return await getSettID(questaSettimana._id);
 	}
-
+	*/
 	async close() {
 		try {
 			await mongoose.disconnect();
