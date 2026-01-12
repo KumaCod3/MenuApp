@@ -5,6 +5,7 @@
 			<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
 			<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
 			<button id="LoadMenu" class="btn btn-primary mb-3">Carica Menu</button>
+			<button id="Save" class="btn ricetta-pranzo mb-3">SALVA MODIFICHE</button>
 			<h2 class="display-4">Ecco il tuo menu</h2>
 			<p>
 				<h3 id="intestazione">Name per l'Temperatura</h3>
@@ -46,6 +47,7 @@
 	var idSettima = "";
 	var idMenu = "";
 	const mappaRicette = new Map();
+	var map = 0;
 
 	async function caricaTavola(idSettima) {
 		try {
@@ -256,7 +258,6 @@
 			};
 			const response = await fetch("/genSett", fetchConfigData);
 			if (response.ok) {
-				console.log("AAAA carico id menu: " + questaSettimana.Menu);
 				caricaTavola(idSettima);
 			}
 		} catch (err) {
@@ -368,7 +369,7 @@
 							<tr>
 								<td class="fw-bold" style="width: 15%">Pranzo</td>
 								<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
-									<div class="recipe-slot">
+									<div class="recipe-slot" data-map="${map += 1}">
 										${renderRecipeCell(dati.Pranzo)}
 									</div>
 								</td>
@@ -376,7 +377,7 @@
 							<tr>
 								<td class="fw-bold" style="width: 15%">Cena</td>
 								<td ondragover="allowDrop(event)" ondragleave="clearDropStyle(event)" ondrop="gestisciDropTabella(event)">
-									<div class="recipe-slot">
+									<div class="recipe-slot" data-map="${map += 1}">
 										${renderRecipeCell(dati.Cena)}
 									</div>
 								</td>
@@ -483,9 +484,70 @@
 
 // _____________ NUOVA PARTE _____________________
 
+	function rimuoviRicetta(IDricettaDELETE) {
+		questaSettimana.Giorni.forEach(giorno => {
+			if (giorno.Pranzo && giorno.Pranzo.toString() === IDricettaDELETE.toString()) {
+				giorno.Pranzo = null;
+			}
+			if (giorno.Cena && giorno.Cena.toString() === IDricettaDELETE.toString()) {
+				giorno.Cena = null; // Rimuoviamo il riferimento
+			}
+		});
+	}
 
+	function inserisciRicetta(IDricettaADD, codice) {
+		const indiceGiorno = Math.floor((codice - 1) / 2);
+		const tipoPasto = (codice % 2 !== 0) ? 'Pranzo' : 'Cena';
 
+		const giorno = questaSettimana.Giorni[indiceGiorno];
 
+		if (giorno) {
+			giorno[tipoPasto] = IDricettaADD;
+		}
+	}
 
+	async function salvaSettimana() {
+		try {
+			const payload = {
+				Giorni: questaSettimana.Giorni,
+				idd: questaSettimana._id,
+				menID: questaSettimana.Menu
+			};
+
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }
+			};
+
+			const response = await fetch("/caricaSettimana", fetchConfigData);
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+				alert('Modifiche salvate correttamente.');
+			} else {
+				console.error(`Errore del server: ${response.status}`);
+			}
+
+		} catch (error) {
+			console.error('Errore durante il salvataggio:', error);
+			alert('Si è verificato un errore durante il salvataggio.');
+		}
+	}
+
+	// Save
+	document.getElementById("Save").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			salvaSettimana()
+		} catch (err) {
+			console.error("Errore durante il download:", err);
+			alert("Impossibile generare menu: " + err.message);
+		}
+	});
 
 </script>
