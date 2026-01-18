@@ -8,11 +8,11 @@ const Ingrediente = mongoose.model('Ingrediente', ingredientiSchema);
 
 const ricettaSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
-	Ingredienti: [{ type: mongoose.Types.ObjectId, ref: 'Ingrediente' }],
+	Ingredienti: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Ingrediente' }],
 	Temperatura: { type: Number, required: true },
 	Orario: { type: Number, required: true },
 	Note: { type: String, required: true },
-	Menus: [{ type: mongoose.Types.ObjectId, ref: 'Menu' }],
+	Menus: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Menu' }],
 	Prova: { type: Boolean, required: true, default: false }
 });
 const Ricetta = mongoose.model('Ricetta', ricettaSchema);
@@ -31,14 +31,14 @@ const settimanaSchema = new mongoose.Schema({
 			ref: 'Ricetta'
 		}
 	}],
-	Menu: { type: mongoose.Types.ObjectId, ref: 'Menu' }
+	Menu: { type: mongoose.Schema.Types.ObjectId, ref: 'Menu' }
 });
 const Settimana = mongoose.model('Settimana', settimanaSchema);
 
 const menuSchema = new mongoose.Schema({
 	Name: { type: String, required: true },
 	Temperatura: { type: Number, required: true },
-	Settimane: [{ type: mongoose.Types.ObjectId, ref: 'Settimana' }]
+	Settimane: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Settimana' }]
 })
 const Menu = mongoose.model('Menu', menuSchema);
 
@@ -240,7 +240,6 @@ class DBmenu {
 
 	async insertSettimana(giorni, id, idMen) {
 		try {
-			let ricetteNuove = [];
 			const giorniProcessati = [];
 
 			const nomiGiorni = [
@@ -256,6 +255,19 @@ class DBmenu {
 					pranzoId = await this._getRicettaId(g.Pranzo);
 					cenaId = await this._getRicettaId(g.Cena);
 
+
+
+					if (pranzoId == null) {
+						console.log("NOME nuova ricetta: " + g.Pranzo);
+						pranzoId = await this.generaRicettaTXT(g.Pranzo, 1);
+						console.log("id nuova ricetta: " + pranzoId);
+					}
+					if (cenaId == null) {
+						console.log("NOME nuova ricetta: " + g.Cena);
+						cenaId = await this.generaRicettaTXT(g.Cena, 2);
+						console.log("id nuova ricetta: " + cenaId);
+					}
+
 					await Ricetta.findByIdAndUpdate(
 						pranzoId,
 						{ $addToSet: { Menus: idMen } }, // Aggiunge solo se unico
@@ -266,15 +278,7 @@ class DBmenu {
 						{ $addToSet: { Menus: idMen } }, // Aggiunge solo se unico
 						{ new: true }
 					);
-					
 
-
-					if (pranzoId == null) {
-						ricetteNuove.push(g.Pranzo);
-					}
-					if (cenaId == null) {
-						ricetteNuove.push(g.Cena);
-					}
 				} catch (err) {
 
 				}
@@ -357,6 +361,23 @@ class DBmenu {
 		}
 	} // /Nricetta /NricettaJSN
 
+	async generaRicettaTXT(nome, orario) {
+		try {
+			const newRicetta = new Ricetta({
+				Name: nome,
+				Ingredienti: [],
+				Temperatura: 0,
+				Orario: orario,
+				Note: "note",
+				Prova: true
+			});
+			await newRicetta.save();
+			return newRicetta._id;
+		} catch (err) {
+			console.error("auuua "+err);
+		}
+	} // /Nricetta /NricettaJSN
+
 	async modificaRicetta(id, nome, ingred, temperatura, orario, prova, note) {
 		let ingredArray = [];
 		for (let i = 0; i < ingred.length; i++) {
@@ -435,8 +456,6 @@ class DBmenu {
 
 	async popolaMenu(newMenu) {
 		const menID = newMenu._id;
-
-		// Lista dei nomi per popolare il campo 'Nome'
 		const nomiSettimana = [
 			"1", "2", "3", '4', "5", "6", "7", "prova"
 		];
@@ -467,7 +486,6 @@ class DBmenu {
 			}
 		}
 
-		// Salviamo il menu con i riferimenti alle 4 settimane create
 		await newMenu.save();
 	} // insertMenu()
 
@@ -671,16 +689,26 @@ class DBmenu {
 	} // /DELETEingFROMrec
 
 	async getAllMenu() {
-		let menus = [];
 		try {
-			menus = await Menu.find()
-				.populate('Settimane')
+			const menus = await Menu.find()
+				.populate({
+					path: 'Settimane',
+					populate: {
+						path: 'Giorni.Pranzo Giorni.Cena', 
+						model: 'Ricetta',
+						populate: {
+							path: 'Ingredienti',
+							model: 'Ingrediente'
+						}
+					}
+				})
 				.lean();
+
+			return menus;
 		} catch (err) {
-			console.error('C\'è stato un problema con l\'estrazione delle settimane:', err);
+			console.error('Errore durante l\'estrazione completa del menu:', err);
 			throw err;
 		}
-		return menus;
 	}
 /*
 	async getIngrediente(nome) {
@@ -738,28 +766,21 @@ class DBmenu {
 		let settim = null;
 		try {
 			settim = await Settimana.findById(_id)
-				.populate('Giorni.Pranzo')
-				.populate('Giorni.Cena');
+			.populate ({
+				path: 'Giorni.Pranzo Giorni.Cena',
+				model: 'Ricetta',
+				populate: {
+					path: 'Ingredienti',
+					model: 'Ingrediente'
+				}
+			}).lean();
 		} catch (err) {
 			console.error('C\'è stato un problema nel trovare la settimana:', err);
 			throw err;
 		}
 		return settim;
 	} // /pian
-	/*
-	async getSettByMenID(_id, nSett) {
-		let menu = null;
-		try {
-			menu = await Menu.findById(_id)
-				.populate('Settimane')
-			console.log('Menu trovata per ID:', menu);
-		} catch (err) {
-			console.error('C\'è stato un problema nel trovare il menu:', err);
-			throw err;
-		}
-		return await getSettID(questaSettimana._id);
-	}
-	*/
+
 	async close() {
 		try {
 			await mongoose.disconnect();

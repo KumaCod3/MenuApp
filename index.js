@@ -63,6 +63,17 @@ app.get('/ricetta/:id', async (req, res) => {
 	}
 });
 
+app.get('/listaSpesa/:id', async (req, res) => {
+	try {
+		const _id = req.params.id;
+		console.log("questo e lid " + _id);
+		const ricetta = await db._getRicettaId(_id);// cambiato
+		res.render('listaSpesa', { menu: ricetta });
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
+
 app.get('/ingredienti', async (req, res) => { 
 	try {
 	const ingredienti = await db.getAllIngredienti();
@@ -119,7 +130,7 @@ app.post('/ricet', async (req, res) => {
 	}
 }); //allRic
 
-app.post('/men', async (req, res) => {
+app.post('/getAllMenu', async (req, res) => {
 	try {
 		const allMen = await db.getAllMenu();
 		res.json(allMen);
@@ -145,7 +156,7 @@ app.post('/loadSettimana', async (req, res) => {
 	}
 }); // piano
 
-app.post('/Nmenu', async (req, res) => { 
+app.post('/insertMenu', async (req, res) => {
 	try {
 		const nome = req.body.Name || 'Menu Generato';
 		const temperaturaScelta = req.body.Temperatura;
@@ -267,7 +278,7 @@ app.post('/refreshRic', async (req, res) => {
 
 app.post('/caricaSettimana', async (req, res) => {
 	try {
-		const giorni = req.body.Giorni || 'noIngred';
+		const giorni = req.body.Giorni || 'noGiorn';
 		const idd = req.body.idd;
 		const idMen = req.body.menID;
 		console.log("Id menu " + idMen);

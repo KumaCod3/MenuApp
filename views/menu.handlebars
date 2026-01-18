@@ -85,7 +85,7 @@
 				body: JSON.stringify(recipeData),
 				headers: { "Content-Type": "application/json" }
 			};
-			const response = await fetch("/men", fetchConfigData);
+			const response = await fetch("/getAllMenu", fetchConfigData);
 			if (response.ok) {
 				const mens = await response.json();
 				loadTableWithMenus(mens);
@@ -129,7 +129,7 @@
 				}
 			};
 
-			const response = await fetch("/Nmenu", fetchConfigData);
+			const response = await fetch("/insertMenu", fetchConfigData);
 			if (response.ok) {
 				const menus = await response.json(); // Si aspetta la lista aggiornata dei menu
 				loadTableWithMenus(menus); // Ricarica la tabella con i nuovi dati
@@ -167,7 +167,7 @@
 				<thead class="table-primary">
 					<tr>
 						<th style="width: 30%">Settimana</th>
-						<th>Contenuto / Note</th>
+						<th>Lista</th>
 					</tr>
 				</thead>
 				<tbody></tbody>
@@ -176,24 +176,45 @@
 			const tbody = table.querySelector("tbody");
 			// 4. Popola le 4 settimane
 			for (let i = 0; i < menu.Settimane.length; i++) {
+
 				const tr = document.createElement("tr");
-				tr.style.cursor = "pointer";
+				// Rimuoviamo il puntatore dalla riga intera, lo metteremo sulle singole celle
+				tr.style.cursor = "default";
+
 				const infoSettimana = eVuoto(menu.Settimane[i]) ? "Vuoto" : "Lista della Spesa";
 
-				tr.innerHTML = `
-					<td><strong>${menu.Settimane[i].Name}</strong></td>
-					<td class="text-muted">${infoSettimana}</td>
-				`;
-
-				tr.onclick = () => {
+				// Creiamo la prima cella (Nome)
+				const tdNome = document.createElement("td");
+				tdNome.style.cursor = "pointer";
+				tdNome.innerHTML = `<strong>${menu.Settimane[i].Name}</strong>`;
+				tdNome.onclick = () => {
 					console.log("Apro menu: " + menu.Settimane[i]._id);
 					window.location.href = `/piano/${menu.Settimane[i]._id}`;
 				};
+
+				// Creiamo la seconda cella (Info/Scarica)
+				const tdLista = document.createElement("td");
+				tdLista.className = "text-muted";
+				tdLista.style.cursor = "pointer";
+				tdLista.innerText = infoSettimana;
+				tdLista.onclick = (event) => {
+					// Evitiamo che il click si propaghi alla riga (se ci fossero altri listener)
+					event.stopPropagation();
+					scaricaLista(menu.Settimane[i]._id);
+				};
+
+				// Aggiungiamo le celle alla riga e la riga al corpo della tabella
+				tr.appendChild(tdNome);
+				tr.appendChild(tdLista);
 				tbody.appendChild(tr);
 			}
 			container.appendChild(table);
 		});
 		document.getElementById("newMenuForm").reset();
+	}
+
+	async function scaricaLista(id) {
+		window.location.href = `/listaSpesa/${id}`;
 	}
 
 	function eVuoto(settimana) {

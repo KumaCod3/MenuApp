@@ -1,90 +1,92 @@
 <div class="container-fluid container-wide">
-	<div class="row">
+	<div class="row mb-3">
+		<div class="col-12">
 			<button type="button" id="DROPButton" class="btn ricetta-pranzo mb-1">ELIMINA RICETTA</button>
 
 			<h2 class="display-3" id="nomeRicetta">Ciccia fritta</h2>
-		<div class="col-md-8">
-
-			<div class="row mb-3">
-				<textarea class="form-control input"
-						  id="note-display"
-						  rows="15"></textarea>
-			</div>
-			<button id="submitButton" class="btn btn-primary">Salva</button>
-
 		</div>
-		<div class="col-md-4">
-			<div class="sticky-top-ing pt-4 sidebar-viewport">
-				<table id="legendTable" class="table table-bordered table-hover">
-					<thead>
-					<th>Ingredienti</th>
-					</thead>
-					<tbody>
-						{{#each legends}}
-						<tr>
-							<td>
-								{{this/Ingredienti}}
-							</td>
-						</tr>
-						{{/each}}
-					</tbody>
-				</table>
+			<div class="col-md-8">
 
-				<form id="newRecipeForm">
-					<div class="form-group" id="ingredienti-container">
-						<label>Ingredienti</label>
-						<div class="ingredient-input">
-							<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-							<datalist id="lista-ingredienti"></datalist>
+				<div class="row mb-3">
+					<textarea class="form-control input"
+							  id="note-display"
+							  rows="15"></textarea>
+				</div>
+				<button id="submitButton" class="btn ricetta-cena mb-1">Salva</button>
+
+			</div>
+			<div class="col-md-4">
+				<div class="sticky-top-ing pt-4 sidebar-viewport">
+					<table id="legendTable" class="table table-bordered table-hover">
+						<thead>
+						<th>Ingredienti</th>
+						</thead>
+						<tbody>
+							{{#each legends}}
+							<tr>
+								<td>
+									{{this/Ingredienti}}
+								</td>
+							</tr>
+							{{/each}}
+						</tbody>
+					</table>
+
+					<form id="newRecipeForm">
+						<div class="form-group" id="ingredienti-container">
+							<label>Ingredienti</label>
+							<div class="ingredient-input">
+								<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
+								<datalist id="lista-ingredienti"></datalist>
+							</div>
+							<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
+							<input type="hidden" name="Ingredienti" id="Ingredienti">
 						</div>
-						<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
-						<input type="hidden" name="Ingredienti" id="Ingredienti">
-					</div>
 
 
-					<div class="row mb-3 d-flex justify-content-between">
-						<div class="col-auto">
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
-								<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+						<div class="row mb-3 d-flex justify-content-between">
+							<div class="col-auto">
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
+									<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+								</div>
+							</div>
+							<div class="col-auto">
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
+									<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
+								</div>
 							</div>
 						</div>
-						<div class="col-auto">
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
-								<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
-							</div>
-						</div>
-					</div>
 
-					<div class="row mb-3 d-flex justify-content-between">
-						<div class="col-auto">
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
-								<label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
+						<div class="row mb-3 d-flex justify-content-between">
+							<div class="col-auto">
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
+									<label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
+								</div>
+							</div>
+							<div class="col-auto">
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
+									<label class="form-check-label" for="Orario2">Ricetta di Cena</label>
+								</div>
 							</div>
 						</div>
-						<div class="col-auto">
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
-								<label class="form-check-label" for="Orario2">Ricetta di Cena</label>
+						<div class="row mb-3 d-flex justify-content-between">
+							<div class="col-auto">
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" name="inProva" id="inProva" required>
+									<label class="form-check-label" for="inProva">In Prova</label>
+								</div>
 							</div>
 						</div>
-					</div>
-					<div class="row mb-3 d-flex justify-content-between">
-						<div class="col-auto">
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" name="inProva" id="inProva" required>
-								<label class="form-check-label" for="inProva">In Prova</label>
-							</div>
-						</div>
-					</div>
-				</form>
+					</form>
 
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
 
 
 <script>

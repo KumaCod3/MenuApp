@@ -2,7 +2,7 @@
 	<div class="row">
 		<div class="col-md-8">
 
-			<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
+			<!--<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>-->
 			<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
 			<button id="LoadMenu" class="btn ricetta-cena mb-3">Carica Menu</button>
 			<button id="Save" class="btn ricetta-pranzo mb-3">SALVA MODIFICHE</button>
@@ -94,37 +94,6 @@
 		}
 	}
 
-	// helper DOWNLOAD
-	function popolaLista(dati) {
-		const container = document.getElementById("contenitoreLista");
-		container.innerHTML = "";
-		if (dati.length === 0) {
-			container.innerHTML = "<p>Nessun Ingrediente.</p>";
-			return;
-		}
-		dati.forEach(ingred => {
-			container.innerHTML += `<p> ${ingred} </p>`;
-		});
-	}
-
-	// helper DOWNLOAD
-	function contaRipetizioni(arrayIniziale) {
-		const conteggio = {};
-		arrayIniziale.forEach(str => {
-			conteggio[str] = (conteggio[str] || 0) + 1;
-		});
-
-		const arrayFinale = [];
-		for (const [str, count] of Object.entries(conteggio)) {
-			if (count > 1) {
-				arrayFinale.push(`${count} ${str}`);
-			} else {
-				arrayFinale.push(str);
-			}
-		}
-		return arrayFinale;
-	}
-
 	// helper caricaTavola
 	async function cercaNomeMenu() {
 		try {
@@ -210,7 +179,7 @@
 			}
 		});
 		if (giornoCorrente) giorniArray.push(giornoCorrente);
-		console.log("finito " + giorniArray);
+		console.log("finito " + JSON.stringify(giorniArray));
 		const payload = {
 			Giorni: giorniArray,
 			idd: questaSettimana._id,
@@ -232,7 +201,7 @@
 			clearTimeout(timeoutId);
 
 			if (response.ok) {
-				window.location.href = '/menu';
+				caricaTavola(idSettima);
 			} else {
 				const errorData = await response.json();
 				console.error("Errore Server:", errorData);
@@ -268,53 +237,6 @@
 		} catch (err) {
 			console.error("Errore durante il download:", err);
 			alert("Impossibile generare menu: " + err.message);
-		}
-	});
-
-	// dwnMENU
-	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
-		e.preventDefault();
-		try {
-			console.log("giorni: " + questaSettimana);
-			const data = questaSettimana;
-			var lista = [];
-			var listaNomi = [];
-			if (data.Giorni && Array.isArray(data.Giorni)) {
-				data.Giorni.forEach(giorno => {
-					if (giorno.Pranzo && giorno.Pranzo.Name) {
-						giorno.Pranzo.Ingredienti.forEach(ingred => {
-							lista.push(ingred);
-						});
-					}
-					if (giorno.Cena && giorno.Cena.Name) {
-						giorno.Cena.Ingredienti.forEach(ingred => {
-							lista.push(ingred);
-						});
-					}
-				});
-			}
-			for (var i = 0; i < lista.length; i++) {
-				const ingred = lista[i];
-				const recipeData = {
-					Id: ingred
-				};
-				const fetchConfigData = {
-					method: "POST",
-					body: JSON.stringify(recipeData),
-					headers: { "Content-Type": "application/json" }
-				};
-				const response = await fetch("/NomeIngr", fetchConfigData);
-				if (response.ok) {
-					const ojIng = await response.json();
-					listaNomi.push(ojIng.Name);
-				}
-			}
-
-			const listaConta = contaRipetizioni(listaNomi);
-			popolaLista(listaConta);
-
-		} catch (err) {
-			console.error("Errore durante il download:", err);
 		}
 	});
 
