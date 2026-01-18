@@ -23,7 +23,7 @@
 			</div>
 		</div>
 	</div>
-	<button id="submitButton" class="btn btn-primary">Crea Menu</button>
+	<button id="submitButton" class="btn ricetta-cena">Crea Menu</button>
 </form>
 
 <script>
@@ -165,10 +165,6 @@
 			table.className = "table table-bordered table-hover mb-5";
 			table.innerHTML = `
 				<thead class="table-primary">
-					<tr>
-						<th style="width: 30%">Settimana</th>
-						<th>Lista</th>
-					</tr>
 				</thead>
 				<tbody></tbody>
 			`;
@@ -204,6 +200,8 @@
 				};
 
 				// Aggiungiamo le celle alla riga e la riga al corpo della tabella
+				tdNome.style.width = "50%";
+				tdLista.style.width = "50%";
 				tr.appendChild(tdNome);
 				tr.appendChild(tdLista);
 				tbody.appendChild(tr);

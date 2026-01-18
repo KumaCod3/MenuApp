@@ -45,7 +45,8 @@ const Menu = mongoose.model('Menu', menuSchema);
 
 class DBmenu {
 	constructor() {
-		this.dbUrl = 'mongodb://127.0.0.1:27017/menu';
+	//	this.dbUrl = 'mongodb://127.0.0.1:27017/menu';
+		this.dbUrl = 'mongodb://192.168.1.15:27017/menu';
 	}
 
 	async init() {
