@@ -1,4 +1,4 @@
-<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTI I MENU</button>
+<button id="DROPButton" class="btn ricetta-pranzo mb-3">ELIMINA TUTTI I MENU</button>
 <h2 class="display-4">I Menu</h2>
 <div id="menusContainer">
 
@@ -178,7 +178,7 @@
 			for (let i = 0; i < menu.Settimane.length; i++) {
 				const tr = document.createElement("tr");
 				tr.style.cursor = "pointer";
-				const infoSettimana = eVuoto(menu.Settimane[i]) ? "Vuoto" : "Menu Presente";
+				const infoSettimana = eVuoto(menu.Settimane[i]) ? "Vuoto" : "Lista della Spesa";
 
 				tr.innerHTML = `
 					<td><strong>${menu.Settimane[i].Name}</strong></td>

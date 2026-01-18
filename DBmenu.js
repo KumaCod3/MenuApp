@@ -51,7 +51,7 @@ class DBmenu {
 	async init() {
 		try {
 			await mongoose.connect(this.dbUrl, {
-				serverSelectionTimeoutMS: 5000 // Timeout per la selezione del server
+				serverSelectionTimeoutMS: 5000 
 			});
 			console.log('Connesso a MongoDB tramite Mongoose!');
 		} catch (err) {
@@ -132,16 +132,6 @@ class DBmenu {
 		}
 	} // /DELETETUTTOric
 
-	async CleanTuttoRic() {
-		try {
-			await Ricetta.updateMany({}, { $set: { Menus: [] } });
-			return null;
-		} catch (err) {
-			console.error("Errore durante lo svuotamento dei Menu:", err);
-			throw err;
-		}
-	} // /CleanRic
-
 	async RimuoviTuttoMen() {
 		try {
 			await Settimana.deleteMany({}); // per droppare tutte ricette!!!!
@@ -153,17 +143,101 @@ class DBmenu {
 		}
 	} // /DELETETUTTOmen
 /*
-	async getAllIngredientiJN() {
-		let ingredienti = [];
+		async getAllIngredientiJN() {
+			let ingredienti = [];
+			try {
+				ingredienti = await Ricetta.find().lean();
+			} catch (err) {
+				console.error('C\'è stato un problema con l\'estrazione degli ingredienti:', err);
+				throw err;
+			}
+			return ingredienti;
+		} // noooo
+		*/
+	async refreshRic() {
 		try {
-			ingredienti = await Ricetta.find().lean();
+			await Ricetta.updateMany({}, { $set: { Menus: [] } });
+			const settimane = await Settimana.find({ Menu: { $exists: true, $ne: null } }).lean();
+
+			const ricettaMenuMap = new Map();
+			for (const sett of settimane) {
+				const menuId = sett.Menu;
+
+				for (const giorno of sett.Giorni) {
+					const pasti = [giorno.Pranzo, giorno.Cena];
+					for (const ricettaId of pasti) {
+						if (ricettaId) {
+							const rIdStr = ricettaId.toString();
+							if (!ricettaMenuMap.has(rIdStr)) {
+								ricettaMenuMap.set(rIdStr, new Set());
+							}
+							ricettaMenuMap.get(rIdStr).add(menuId);
+						}
+					}
+				}
+			}
+
+			const bulkOps = [];
+			for (const [ricettaId, menuSet] of ricettaMenuMap) {
+				bulkOps.push({
+					updateOne: {
+						filter: { _id: ricettaId },
+						update: { $set: { Menus: Array.from(menuSet) } }
+					}
+				});
+			}
+
+			if (bulkOps.length > 0) {
+				await Ricetta.bulkWrite(bulkOps);
+			}
+			return { success: true, message: `Aggiornate ${bulkOps.length} ricette.` };
+
 		} catch (err) {
-			console.error('C\'è stato un problema con l\'estrazione degli ingredienti:', err);
+			console.error("Errore durante il refresh delle ricette:", err);
 			throw err;
 		}
-		return ingredienti;
-	} // noooo
-	*/
+	}// /refreshRic
+
+	async salvaSettimana(settimana) {
+		try {
+			const idSettimana = settimana._id;
+			await Settimana.findByIdAndUpdate(
+				idSettimana,
+				settimana,
+				{ new: true, runValidators: true }
+			);
+
+		} catch (err) {
+			console.error('Errore durante il salvataggio della settimana:', err);
+		}
+	}
+	
+	async liberaRicetta(ricettaID, idMen) {
+		try {
+			await Ricetta.findByIdAndUpdate(
+				ricettaID,
+				{ $pull: { Menus: idMen } },
+				{ new: true, runValidators: true }
+			);
+
+		} catch (err) {
+			console.error('Errore durante il salvataggio della settimana:', err);
+		}
+	} // salvaSettimana
+		
+	async occupaRicetta(ricettaID, idMen) {
+		try {
+			await Ricetta.findByIdAndUpdate(
+				ricettaID,
+				{ $push: { Menus: idMen } },
+				{ new: true, runValidators: true }
+			);
+
+		} catch (err) {
+			console.error('Errore durante il salvataggio della settimana:', err);
+		}
+	} //  occupaRicetta
+
 	async insertSettimana(giorni, id, idMen) {
 		try {
 			let ricetteNuove = [];
@@ -327,7 +401,7 @@ class DBmenu {
 					Prova: prova,
 					Note: note
 				},
-				{ new: true } // questo restituisce il documento aggiornato
+				{ new: true }
 			);
 
 			if (!updatedRicetta) {
@@ -638,7 +712,6 @@ class DBmenu {
 		try {
 			menu = await Menu.findById(_id)
 				.populate('Settimane')
-			console.log('Menu trovata per ID:', menu);
 		} catch (err) {
 			console.error('C\'è stato un problema nel trovare il menu:', err);
 			throw err;
@@ -667,7 +740,6 @@ class DBmenu {
 			settim = await Settimana.findById(_id)
 				.populate('Giorni.Pranzo')
 				.populate('Giorni.Cena');
-			console.log('Settimana trovata per ID:', settim);
 		} catch (err) {
 			console.error('C\'è stato un problema nel trovare la settimana:', err);
 			throw err;

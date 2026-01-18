@@ -1,11 +1,12 @@
-<div class="container-fluid container-wide">
+﻿<div class="container-fluid container-wide">
 	<div class="row">
 		<div class="col-md-8">
 
 			<button id="dwnMENU" class="btn btn-secondary mb-3">Scarica LISTA</button>
 			<button id="genMENU" class="btn btn-secondary mb-3">Genera MENU</button>
-			<button id="LoadMenu" class="btn btn-primary mb-3">Carica Menu</button>
+			<button id="LoadMenu" class="btn ricetta-cena mb-3">Carica Menu</button>
 			<button id="Save" class="btn ricetta-pranzo mb-3">SALVA MODIFICHE</button>
+			<button id="fresh" class="btn ricetta-pranzo mb-3">libera Ricette</button>
 			<h2 class="display-4">Ecco il tuo menu</h2>
 			<p>
 				<h3 id="intestazione">Name per l'Temperatura</h3>
@@ -19,19 +20,19 @@
 		</div>
 		<div class="col-md-4">
 			<div class="sticky-top pt-4 sidebar-viewport">
-			<div class="p-3 border bg-light rounded full-height-box">
-				<h2>Ricette da Usare</h2>
-				<hr class="hrB">
-				<div id="sidecar">
-					Qui puoi inserire il nuovo contenuto che volevi affiancare.<br /><br />
-					bla bla..<br /><br />
+				<div class="p-3 border bg-light rounded full-height-box">
+					<h2 id="sid">Ricette da Usare <span class="btn ricetta-unisex counter" id="counter-value">0</span></h2>
+					<hr class="hrB">
+					<div id="sidecar" data-map="-1">
+						Qui puoi inserire il nuovo contenuto che volevi affiancare.<br /><br />
+						bla bla..<br /><br />
 
 
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
 </div>
 
 <script>
@@ -46,6 +47,8 @@
 	var questaSettimana = "";
 	var idSettima = "";
 	var idMenu = "";
+	var sidecarCounter = 0;
+	var counterSpan = document.getElementById("counter-value");
 	const mappaRicette = new Map();
 	var map = 0;
 
@@ -160,6 +163,8 @@
 
 			if (response.ok) {
 				const data = await response.json();
+				sidecarCounter = data.length;
+				counterSpan.textContent = sidecarCounter;
 				loadSideWithRicette(data);
 			}
 		} catch (err) {
@@ -266,10 +271,9 @@
 		}
 	});
 
-	//  dwnMENU
+	// dwnMENU
 	document.getElementById("dwnMENU").addEventListener("click", async (e) => {
 		e.preventDefault();
-
 		try {
 			console.log("giorni: " + questaSettimana);
 			const data = questaSettimana;
@@ -289,7 +293,6 @@
 					}
 				});
 			}
-
 			for (var i = 0; i < lista.length; i++) {
 				const ingred = lista[i];
 				const recipeData = {
@@ -312,7 +315,6 @@
 
 		} catch (err) {
 			console.error("Errore durante il download:", err);
-			alert("Impossibile scaricare il file TXT: " + err.message);
 		}
 	});
 
@@ -333,27 +335,42 @@
 	function renderRecipeCell(ricetta) {
 		const id = ricetta?._id;
 		const nome = ricetta?.Name || ricetta?.name;
-		const orario = ricetta?.Orario ?? ricetta?.orario ?? 0; // Default a 0
+		const orario = ricetta?.Orario ?? ricetta?.orario ?? 0;
 		const prova = ricetta?.Prova;
 		const haRicetta = id && nome && nome !== '-';
 
 		if (haRicetta) {
 			const classeColore = getColoreBadge(orario);
 			const classeProva = getColore(prova);
-			const ora = Date.now(); // Ottiene il timestamp attuale in millisecondi
+			const ora = Date.now(); 
 			mappaRicette.set(ricetta._id, ricetta);
-			return `<span class="badge ${classeColore} ${classeProva} m-1 badge-recipe"
-						draggable="true" 
-						id="tabrecipe-${id}-${ora}"
-						data-id="${id}" 
-						data-name="${nome.replace(/'/g, "\\'")}"
-						data-orario="${orario}"
-						ondragstart="iniziaDrag(event, '${id}', '${nome.replace(/'/g, "\\'")}', 'tabrecipe-${id}-${ora}' )">
-					${nome}
-				</span>`;
+			return `<div class="badge ${classeColore} ${classeProva} badge-recipe d-inline-flex align-items-stretch p-0"
+						 id="tabrecipe-${id}-${ora}"
+						 data-id="${id}" 
+						 draggable="false">
+	
+						<div class="drag-handle px-2 d-flex align-items-center" 
+							 draggable="true" 
+							 ondragstart="iniziaDrag(event, '${id}', '${nome}', 'tabrecipe-${id}-${ora}')">
+							 ⋮
+						</div>
+						<a href="/ricetta/${ricetta._id}" class="px-3 d-flex align-items-center text-reset text-decoration-none">
+							${nome}
+						</a>
+					</div>`;
 		} else {
 			return `<small class="text-muted">Trascina qui...</small>`;
 		}
+	}
+
+	function enableDrag(handle) {
+		const container = handle.closest('.badge-recipe-container');
+		container.setAttribute('draggable', 'true');
+	}
+
+	function disableDrag(handle) {
+		const container = handle.closest('.badge-recipe-container');
+		container.setAttribute('draggable', 'false');
 	}
 
 	function getTabellaView(dati) {
@@ -389,7 +406,6 @@
 	}
 
 	const sidecar = document.getElementById("sidecar");
-
 	function loadSideWithRicette(data) {
 		const container = document.getElementById("sidecar");
 		container.innerHTML = "";
@@ -399,7 +415,6 @@
 			container.innerHTML += htmlContent;
 		});
 	}
-
 
 	function allowDrop(e) {
 		e.preventDefault();
@@ -418,22 +433,30 @@
 		const data = JSON.parse(e.dataTransfer.getData("text/plain"));
 		const slot = target.querySelector(".recipe-slot") || target;
 
-		// se nella tabella c'e gia ricetta, rimettila in sidecar
+		// se nella tabella c'e gia ricetta, rimettila in sidecar  E ELIMINALA DALLA SETTIMANAAAAAA
 		const badgeEsistente = slot.querySelector(".badge-recipe");
 		if (badgeEsistente) {
+			console.log("ce gia qualcosa");
 			const oldId = badgeEsistente.getAttribute("data-id");
 			const ricetta = mappaRicette.get(oldId);
 			const htmlContent = renderRecipeCell(ricetta);
+			rimuoviRicetta(ricetta);
 			const container = document.getElementById("sidecar");
 			container.innerHTML += htmlContent;
 		}
 
-		// metti la tua ricetta nello slot
+		// metti la tua ricetta nello slot E NELLA SETTIMANAAAAA
 		const idSpostata = data.id;
 		const ricetta = mappaRicette.get(idSpostata);
 		const htmlContent = renderRecipeCell(ricetta);
+		const mappa = slot.dataset.map;
+		
 		slot.innerHTML = htmlContent;
-		// elimina dal sidecar
+
+		rimuoviRicetta(ricetta);
+
+		inserisciRicetta(idSpostata, mappa);
+		// elimina dal precedente
 		const originElement = document.getElementById(data.oggetto);
 		if (originElement) {
 			originElement.remove();
@@ -442,14 +465,19 @@
 	}
 
 	function iniziaDrag(e, idData, nome, id) {
+		const handle = e.currentTarget;
+		const contenitoreMappa = handle.closest('[data-map]');
+		const mapValue = contenitoreMappa ? contenitoreMappa.dataset.map : null;
+
 		const payload = {
 			id: idData,
 			name: nome,
-			oggetto: id
+			oggetto: id,
+			map: mapValue
 		};
 		e.dataTransfer.setData("text/plain", JSON.stringify(payload));
-
-		e.target.classList.add("opacity-50");
+		const badgeCompleto = handle.closest('.badge-recipe-container');
+		if (badgeCompleto) badgeCompleto.classList.add("opacity-50");
 	}
 
 	sidecar.ondragover = (e) => e.preventDefault();
@@ -462,7 +490,7 @@
 			const htmlContent = renderRecipeCell(ricetta);
 			const container = document.getElementById("sidecar");
 			container.innerHTML += htmlContent;
-
+			rimuoviRicetta(ricetta);
 			const originElement = document.getElementById(data.oggetto);
 			if (originElement) {
 				originElement.remove();
@@ -476,44 +504,46 @@
 		if (val === 2) return "ricetta-cena";
 		return "ricetta-unisex";
 	}
+
 	function getColore(prova) {
 		if (prova === true) return "ricetta-prova";
 		if (prova === false) return "";
 		return "";
 	}
 
-// _____________ NUOVA PARTE _____________________
-
 	function rimuoviRicetta(IDricettaDELETE) {
+//		console.log("TOLGO ricetta in settimana: " + IDricettaDELETE);
+		liberaRicetta(IDricettaDELETE);
 		questaSettimana.Giorni.forEach(giorno => {
-			if (giorno.Pranzo && giorno.Pranzo.toString() === IDricettaDELETE.toString()) {
+			if (giorno.Pranzo && giorno.Pranzo._id.toString() === IDricettaDELETE._id.toString()) {
 				giorno.Pranzo = null;
+//				console.log("pranzo E UGUALE TOLGO; " + IDricettaDELETE._id.toString());
 			}
-			if (giorno.Cena && giorno.Cena.toString() === IDricettaDELETE.toString()) {
-				giorno.Cena = null; // Rimuoviamo il riferimento
+			else if (giorno.Cena && giorno.Cena._id.toString() === IDricettaDELETE._id.toString()) {
+				giorno.Cena = null;
+//				console.log("ce4na E UGUALE TOLGO; " + IDricettaDELETE._id.toString());
 			}
 		});
 	}
 
 	function inserisciRicetta(IDricettaADD, codice) {
+		console.log("metto ricetta in settimana: " + IDricettaADD + " mappa " + codice);
+		occupaRicetta(IDricettaADD);
 		const indiceGiorno = Math.floor((codice - 1) / 2);
 		const tipoPasto = (codice % 2 !== 0) ? 'Pranzo' : 'Cena';
-
 		const giorno = questaSettimana.Giorni[indiceGiorno];
 
 		if (giorno) {
-			giorno[tipoPasto] = IDricettaADD;
+			giorno[tipoPasto] = mappaRicette.get(IDricettaADD);
 		}
 	}
 
-	async function salvaSettimana() {
+	async function liberaRicetta(IDricetta) {
 		try {
 			const payload = {
-				Giorni: questaSettimana.Giorni,
-				idd: questaSettimana._id,
-				menID: questaSettimana.Menu
-			};
-
+				_id: IDricetta,
+				_idMen: idMenu
+			}
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), 2000);
 
@@ -523,7 +553,64 @@
 				headers: { "Content-Type": "application/json" }
 			};
 
-			const response = await fetch("/caricaSettimana", fetchConfigData);
+			const response = await fetch("/liberaRicetta", fetchConfigData);
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+				sidecarCounter += 1;
+				counterSpan.textContent = sidecarCounter;
+			} else {
+				console.error(`Errore del server: ${response.status}`);
+			}
+
+		} catch (error) {
+			console.error('Errore durante la liberazione:', error);
+		}
+	}
+
+	async function occupaRicetta(IDricetta) {
+		try {
+			const payload = {
+				_id: IDricetta,
+				_idMen: idMenu
+			}
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }
+			};
+
+			const response = await fetch("/occupaRicetta", fetchConfigData);
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+				sidecarCounter -= 1;
+				counterSpan.textContent = sidecarCounter;
+			} else {
+				console.error(`Errore del server: ${response.status}`);
+			}
+
+		} catch (error) {
+			console.error('Errore durante l associazione:', error);
+		}
+	}
+
+	async function salvaSettimana() {
+		try {
+			const payload = questaSettimana;
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }
+			};
+
+			const response = await fetch("/salvaSettimana", fetchConfigData);
 			clearTimeout(timeoutId);
 
 			if (response.ok) {
@@ -534,7 +621,7 @@
 
 		} catch (error) {
 			console.error('Errore durante il salvataggio:', error);
-			alert('Si � verificato un errore durante il salvataggio.');
+			alert('Si è verificato un errore durante il salvataggio.');
 		}
 	}
 
@@ -543,11 +630,47 @@
 		e.preventDefault();
 
 		try {
-			salvaSettimana()
+			salvaSettimana();
 		} catch (err) {
-			console.error("Errore durante il download:", err);
-			alert("Impossibile generare menu: " + err.message);
+			console.error("Errore durante salvataggio", err);
 		}
 	});
 
+	async function refresh() {
+		try {
+			const payload = {};
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }
+			};
+
+			const response = await fetch("/refreshRic", fetchConfigData);
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+			} else {
+				console.error(`Errore del server: ${response.status}`);
+			}
+
+		} catch (error) {
+			console.error('Errore durante la pulizia:', error);
+			alert('Si è verificato un errore durante la pulizia.');
+		}
+	}
+
+	// fresh
+	document.getElementById("fresh").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			console.log("pulisco: ");
+			refresh();
+		} catch (err) {
+			console.error("Errore durante salvataggio", err);
+		}
+	});
 </script>

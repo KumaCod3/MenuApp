@@ -1,87 +1,100 @@
-<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA RICETTA</BUTTON>
+<div class="container-fluid container-wide">
+	<div class="row">
+			<button type="button" id="DROPButton" class="btn ricetta-pranzo mb-1">ELIMINA RICETTA</button>
 
-<h2 class="display-3" id="nomeRicetta">Ciccia fritta</h2>
+			<h2 class="display-3" id="nomeRicetta">Ciccia fritta</h2>
+		<div class="col-md-8">
 
-<table id="legendTable" class="table table-bordered table-hover">
-	<thead>
-		<th>Ingredienti</th>
-	</thead>
-	<tbody>
-		{{#each legends}}
-		<tr>
-			<td>
-				{{this/Ingredienti}}
-			</td>
-		</tr>
-		{{/each}}
-	</tbody>
-</table>
+			<div class="row mb-3">
+				<textarea class="form-control input"
+						  id="note-display"
+						  rows="15"></textarea>
+			</div>
+			<button id="submitButton" class="btn btn-primary">Salva</button>
 
-
-<h3 class="display-5">Modifica ricetta:</h3>
-<form id="newRecipeForm">
-	<div class="form-group" id="ingredienti-container">
-		<label>Ingredienti</label>
-		<div class="ingredient-input">
-			<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-			<datalist id="lista-ingredienti"></datalist>
 		</div>
-		<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
-		<input type="hidden" name="Ingredienti" id="Ingredienti">
-	</div>
+		<div class="col-md-4">
+			<div class="sticky-top-ing pt-4 sidebar-viewport">
+				<table id="legendTable" class="table table-bordered table-hover">
+					<thead>
+					<th>Ingredienti</th>
+					</thead>
+					<tbody>
+						{{#each legends}}
+						<tr>
+							<td>
+								{{this/Ingredienti}}
+							</td>
+						</tr>
+						{{/each}}
+					</tbody>
+				</table>
+
+				<form id="newRecipeForm">
+					<div class="form-group" id="ingredienti-container">
+						<label>Ingredienti</label>
+						<div class="ingredient-input">
+							<input type="text" class="form-control" id="ingrediente-display" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
+							<datalist id="lista-ingredienti"></datalist>
+						</div>
+						<button type="button" id="add-ingrediente" class="btn btn-secondary">Aggiungi Ingrediente</button>
+						<input type="hidden" name="Ingredienti" id="Ingredienti">
+					</div>
 
 
-	<div class="row mb-3">
-		<div class="col-2">
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
-				<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+					<div class="row mb-3 d-flex justify-content-between">
+						<div class="col-auto">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="Temperatura" id="Temperatura1" required>
+								<label class="form-check-label" for="Temperatura1">Ricetta Estiva</label>
+							</div>
+						</div>
+						<div class="col-auto">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
+								<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="row mb-3 d-flex justify-content-between">
+						<div class="col-auto">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
+								<label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
+							</div>
+						</div>
+						<div class="col-auto">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
+								<label class="form-check-label" for="Orario2">Ricetta di Cena</label>
+							</div>
+						</div>
+					</div>
+					<div class="row mb-3 d-flex justify-content-between">
+						<div class="col-auto">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="inProva" id="inProva" required>
+								<label class="form-check-label" for="inProva">In Prova</label>
+							</div>
+						</div>
+					</div>
+				</form>
+
 			</div>
 		</div>
-		<div class="col-2">
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="Temperatura2" id="Temperatura2" required>
-				<label class="form-check-label" for="Temperatura2">Ricetta Invernale</label>
-			</div>
-		</div>
 	</div>
+</div>
 
-	<div class="row mb-3">
-		<div class="col-2">
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="Orario1" id="Orario1" required>
-				<label class="form-check-label" for="Orario1">Ricetta di Pranzo</label>
-			</div>
-		</div>
-		<div class="col-2">
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="Orario2" id="Orario2" required>
-				<label class="form-check-label" for="Orario2">Ricetta di Cena</label>
-			</div>
-		</div>
-	</div>
-	<div class="row mb-3">
-		<div class="col-2">
-			<div class="form-check">
-				<input type="checkbox" class="form-check-input" name="inProva" id="inProva" required>
-				<label class="form-check-label" for="inProva">In Prova</label>
-			</div>
-		</div>
-	</div>
-	<div class="row mb-3">
-		<input type="text" class="form-control" id="note-display" placeholder="Note da inserire...">
-	</div>
-	<button id="submitButton" class="btn btn-primary">Salva</button>
-</form>
+
 <script>
-	
+
 	document.addEventListener("DOMContentLoaded", (event) => {
 		populateIngredientsDropdown();
 
 		const displayInput = document.getElementById("ingrediente-display");
 		displayInput.addEventListener('input', updateHiddenInput);
-		const noteInput = document.getElementById("note-display");
-		noteInput.addEventListener('input', updateNoteInput);
+
 		const addIngredienteButton = document.getElementById("add-ingrediente");
 		addIngredienteButton.addEventListener("click", addIngrediente);
 
@@ -91,8 +104,8 @@
 		_idd = id;
 		caricaTavola(id);
 		loadTableListeners();
-		
 	});
+	const noteArea = document.getElementById('note-display');
 	var QuestaRicetta = {};
 	var nomeRicetta = "";
 	var ingredientiMap = {};
@@ -109,9 +122,9 @@
 
 				ingredienti.forEach(ingrediente => {
 					const option = document.createElement("option");
-					option.value = ingrediente.Name; 
+					option.value = ingrediente.Name;
 					dataList.appendChild(option);
-				
+
 					ingredientiMap[ingrediente.Name] = ingrediente._id;
 				});
 			} else {
@@ -126,41 +139,45 @@
 		const container = document.getElementById("ingredienti-container");
 		const newIngredientInput = document.createElement("div");
 		newIngredientInput.classList.add("ingredient-input");
-   
-		newIngredientInput.innerHTML = 
-		`
-			<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
-			<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
-		`;
-	
+
+		newIngredientInput.innerHTML =`
+										<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
+										<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
+									`;
+
 		container.appendChild(newIngredientInput);
-	
+
 		newIngredientInput.querySelector(".remove-ingrediente").addEventListener("click", () => {
 			container.removeChild(newIngredientInput);
-			updateHiddenInput(); 
+			updateHiddenInput();
 		});
 	}
 
 	function updateHiddenInput() {
 		const hiddenInput = document.getElementById("Ingredienti");
-		const ingredientInputs = document.querySelectorAll(".ingredient-input input");
-	
+		const ingredientInputs = document.querySelectorAll(".ingredient-input");
+
 		const ingredientValues = Array.from(ingredientInputs).map(input => input.value).filter(val => val);
 		hiddenInput.value = ingredientValues.join(",");
-		}
+	}
 
 	function updateNoteInput(event) {
-			nota = event.target.value;
-			console.log("Valore attuale di nota:", nota);
-		}
+		nota = event.target.value;
+		console.log("Valore attuale di nota:", nota);
+		autoResize();
+	}
+	function autoResize() {
+		noteArea.style.height = 'auto';
+		noteArea.style.height = (noteArea.scrollHeight) + 'px';
+	}
 
 	function loadTableListeners() {
-		const rows = document.querySelectorAll("#legendTable tbody tr"); 
+		const rows = document.querySelectorAll("#legendTable tbody tr");
 		rows.forEach(row => {
 			row.addEventListener("click", async () => {
 				const ingreID = row.dataset.id;
 
-				const jsoningreID = { 'Id': ingreID, 'Name': nomeRicetta};
+				const jsoningreID = { 'Id': ingreID, 'Name': nomeRicetta };
 				console.log("clicco: " + ingreID + nomeRicetta);
 				try {
 					const fetchConfigData = {
@@ -172,9 +189,9 @@
 					};
 
 					const response = await fetch("/DELETEingFROMrec", fetchConfigData);
-				
+
 					if (response.ok) {
-					
+
 						const recipe = await response.json();
 						window.location.href = '/ricette';
 					} else {
@@ -220,7 +237,7 @@
 
 		try {
 			const Name = nomeRicetta;
-			const hiddenInputs = document.querySelectorAll(".ingredient-input input"); 
+			const hiddenInputs = document.querySelectorAll(".ingredient-input input");
 
 			var ingredienti = Array.from(hiddenInputs).map(input => {
 				const ingredienteNome = input.value.trim();
@@ -235,16 +252,14 @@
 				}
 			});
 
-			console.log(Array.from(hiddenInputs));
 			const Temperatura1 = document.getElementById("Temperatura1").checked;
 			const Temperatura2 = document.getElementById("Temperatura2").checked;
 			const Orario1 = document.getElementById("Orario1").checked;
 			const Orario2 = document.getElementById("Orario2").checked;
-			const Orario = (Orario1?1:0)+(Orario2?2:0);
+			const Orario = (Orario1 ? 1 : 0) + (Orario2 ? 2 : 0);
 			const Temperatura = (Temperatura1 ? 1 : 0) + (Temperatura2 ? 2 : 0);
 			const prova = document.getElementById("inProva").checked;
 			const Nota = nota;
-			console.log("t1= "+Temperatura1+" T2: "+Temperatura2+" Tot: "+Temperatura);
 			const recipeData = {
 				Name: Name,
 				Ingredienti: ingredienti,
@@ -252,16 +267,14 @@
 				Orario: Orario,
 				Id: _idd,
 				Prova: prova,
-				Note : Nota
+				Note: Nota
 			};
-			console.log(JSON.stringify(recipeData));
 
 			const fetchConfigData = {
 				method: "POST",
 				body: JSON.stringify(recipeData),
 				headers: { "Content-Type": "application/json" }
 			};
-			console.log("config data: " + fetchConfigData.body);
 
 			const response = await fetch("/MODricetta", fetchConfigData);
 			if (response.ok) {
@@ -286,20 +299,22 @@
 				headers: { "Content-Type": "application/json" }
 			};
 			const response = await fetch("/NomeRic", fetchConfigData);
-			
+
 			if (response.ok) {
 				const recipes = await response.json();
 				QuestaRicetta = recipes;
 				nomeRicetta = recipes.Name;
 				nota = recipes.Note;
-				document.getElementById("note-display").setAttribute('value', nota);
-				console.log("carica tavola response: " + nota);
-				loadTableWithRecipes(recipes);
+				await loadTableWithRecipes(recipes);
+				noteArea.value = nota;
+				autoResize();
+				noteArea.addEventListener('input', updateNoteInput);
+
 			} else {
-				console.log("Error with the response data");
+				console.error("Error with the response data");
 			}
 		} catch (err) {
-			console.log(`Error: ${err}`);
+			console.error(`Error: ${err}`);
 		}
 	}
 
@@ -346,25 +361,25 @@
 
 	async function getIngName(ingredientId) {
 		let nomeIng = "";
-			const ingData = {
-				Id: ingredientId,
-			};
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(ingData),
-				headers: { "Content-Type": "application/json" }
-			};
-			const response = await fetch("/NomeIngr", fetchConfigData);
-			if (response.ok) {
-				const ingrediente = await response.json();
-				let nm = 'noName';
-				if (ingrediente != null) {
-					nomeIng=ingrediente.Name;
-				}
-			} else {
-				console.log("Error with the response data");
+		const ingData = {
+			Id: ingredientId,
+		};
+		const fetchConfigData = {
+			method: "POST",
+			body: JSON.stringify(ingData),
+			headers: { "Content-Type": "application/json" }
+		};
+		const response = await fetch("/NomeIngr", fetchConfigData);
+		if (response.ok) {
+			const ingrediente = await response.json();
+			let nm = 'noName';
+			if (ingrediente != null) {
+				nomeIng = ingrediente.Name;
 			}
-	return nomeIng;
+		} else {
+			console.log("Error with the response data");
+		}
+		return nomeIng;
 	}
 
 </script>

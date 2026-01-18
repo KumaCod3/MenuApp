@@ -135,12 +135,12 @@ app.post('/loadSettimana', async (req, res) => {
 		console.log(" In settimana cerco id: " + settId);
 		const settTrovata = await db.getSettID(settId);
 		if (settTrovata) {
-			res.json(settTrovata).send("OK");
+			res.json(settTrovata);
 		} else {
 			res.status(404).json({ message: "Menu non trovato" });
 		}
 	} catch (err) {
-		console.error("Errore nel recupero del menu:", err);
+		console.error("Errore nel recupero del menu:");
 		res.status(500).json({ message: err.message });
 	}
 }); // piano
@@ -223,6 +223,48 @@ app.post('/NricettaJSN', async (req, res) => {
 	}
 }); // allric
 
+app.post('/salvaSettimana', async (req, res) => {
+	try {
+		const settimana = req.body;
+		await db.salvaSettimana(settimana);
+		res.status(200).send("OK");
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+}); // piano
+
+app.post('/liberaRicetta', async (req, res) => {
+	try {
+		const IDricetta = req.body._id;
+		const IDmen = req.body._idMen;
+		await db.liberaRicetta(IDricetta, IDmen);
+		res.status(200).send("OK");
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+}); // piano
+
+app.post('/occupaRicetta', async (req, res) => {
+	try {
+		const IDricetta = req.body._id;
+		const IDmen = req.body._idMen;
+		await db.occupaRicetta(IDricetta, IDmen);
+		res.status(200).send("OK");
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+}); // piano
+
+app.post('/refreshRic', async (req, res) => {
+	try {
+		await db.refreshRic();
+		const allRic = await db.getAllRicette();
+		res.json(allRic);
+	} catch (err) {
+		res.status(500).json({ "results": "none" });
+	}
+}); // allRic
+
 app.post('/caricaSettimana', async (req, res) => {
 	try {
 		const giorni = req.body.Giorni || 'noIngred';
@@ -258,16 +300,6 @@ app.post('/DELETETUTTOric', async (req, res) => {
 		res.status(500).json({"results": "none"});
 	}
 }) // allRic
-
-app.post('/CleanRic', async (req, res) => {
-	try {
-		await db.CleanTuttoRic();
-		const allRic = await db.getAllRicette();
-			res.json(allRic); 
-	} catch (err) {
-		res.status(500).json({"results": "none"});
-	}
-}); // allRic
 
 app.post('/MenuID', async (req, res) => {
 	try {

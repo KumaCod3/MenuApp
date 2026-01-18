@@ -1,5 +1,5 @@
-<button id="DROPButton" class="btn btn-primary mb-3">ELIMINA TUTTE LE RICETTE</button>
-<button id="CleanButton" class="btn btn-primary mb-3">Pulisci TUTTE LE RICETTE</button>
+<button id="DROPButton" class="btn ricetta-pranzo mb-3">ELIMINA TUTTE LE RICETTE</button>
+<button id="fresh" class="btn ricetta-pranzo mb-3">REFRESH</button>
 <button id="loadJSON" class="btn btn-secondary mb-3">Carica JSON</button>
 <button id="dwnJSON" class="btn btn-secondary mb-3">Scarica JSON</button>
 <h2 class="display-4">Le Ricette</h2>
@@ -62,14 +62,14 @@
 	</div>
 	<button id="submitButton" class="btn btn-primary">Aggiungi</button>
 </form>
-<hr/>
+<hr />
 <table id="legendTable" class="table table-bordered table-hover">
 	<thead>
-		<th>Nome</th>
-		<th>Ingredienti</th>
-		<th>Stagione</th>
-		<th>Pasto</th>
-		<th>Note</th>
+	<th>Nome</th>
+	<th>Ingredienti</th>
+	<th>Stagione</th>
+	<th>Pasto</th>
+	<th>Note</th>
 	</thead>
 	<tbody>
 		{{#each legends}}
@@ -135,7 +135,7 @@
 		const newIngredientInput = document.createElement("div");
 		newIngredientInput.classList.add("ingredient-input");
 
-		newIngredientInput.innerHTML = 	`
+		newIngredientInput.innerHTML = `
 			<input type="text" class="form-control" list="lista-ingredienti" placeholder="Seleziona o scrivi un ingrediente...">
 			<button type="button" class="btn btn-danger remove-ingrediente">Rimuovi</button>
 		`;
@@ -279,33 +279,6 @@
 		}
 	}
 
-	// CleanButton
-	document.getElementById("CleanButton").addEventListener("click", async (e) => {
-		e.preventDefault();
-
-		try {
-			const recipeData = {
-				Name: "ciao",
-			};
-			const fetchConfigData = {
-				method: "POST",
-				body: JSON.stringify(recipeData),
-				headers: { "Content-Type": "application/json" }
-			};
-			console.log("config data: " + fetchConfigData.body);
-
-			const response = await fetch("/CleanRic", fetchConfigData);
-			if (response.ok) {
-				const recipes = await response.json();
-				loadTableWithRecipes(recipes);
-			} else {
-				console.log("Error with the response data");
-			}
-		} catch (err) {
-			console.log(`Error: ${err}`);
-		}
-	});
-
 	// DROPButton
 	document.getElementById("DROPButton").addEventListener("click", async (e) => {
 		e.preventDefault();
@@ -411,7 +384,7 @@
 
 	async function loadTableWithRecipes(recipes) {
 		const tableBody = document.querySelector("#legendTable tbody");
-		tableBody.innerHTML = ""; 
+		tableBody.innerHTML = "";
 
 		for (const ricetta of recipes) {
 			console.log("ricetta trovata: " + ricetta);
@@ -491,5 +464,43 @@
 		}
 		return ingredArray;
 	}
+
+	async function refresh() {
+		try {
+			const payload = {};
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+			const fetchConfigData = {
+				method: "POST",
+				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }
+			};
+
+			const response = await fetch("/refreshRic", fetchConfigData);
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+			} else {
+				console.error(`Errore del server: ${response.status}`);
+			}
+
+		} catch (error) {
+			console.error('Errore durante la pulizia:', error);
+			alert('Si è verificato un errore durante la pulizia.');
+		}
+	}
+
+	// fresh
+	document.getElementById("fresh").addEventListener("click", async (e) => {
+		e.preventDefault();
+
+		try {
+			console.log("pulisco: ");
+			refresh();
+		} catch (err) {
+			console.error("Errore durante salvataggio", err);
+		}
+	});
 
 </script>
